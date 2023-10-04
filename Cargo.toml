@@ -1,0 +1,11 @@
+[workspace]
+members = [
+  "smarter-home-api",
+  "smarter-home-local-actor",
+  #Common
+  "smarter-home-models"
+]
+
+
+[profile.release]
+debug = true
