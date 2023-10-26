@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - 44900:44900
+    volumes:
+      - .:/usr/src/smarter-home
+    command: air cmd/main.go -b 0.0.0.0
