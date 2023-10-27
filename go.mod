@@ -3,7 +3,7 @@ module app
 go 1.21.3
 
 require (
-	github.com/MartinEllegard/tibber-go v0.1.1
+	github.com/MartinEllegard/tibber-go v0.1.3
 	github.com/gofiber/fiber/v2 v2.50.0
 	github.com/joho/godotenv v1.5.1
 	gorm.io/driver/postgres v1.5.4
@@ -12,7 +12,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
-	github.com/google/uuid v1.3.1 // indirect
+	github.com/google/uuid v1.4.0 // indirect
 	github.com/hasura/go-graphql-client v0.10.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
