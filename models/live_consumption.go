@@ -4,8 +4,7 @@ import (
 	"time"
 )
 
-// Product struct
-type SMConsumptionTracker struct {
+type LiveConsumption struct {
 	HomeId                      string    `gorm:"type:sample" json:"homeId"`
 	Timestamp                   time.Time `gorm:"type:timestamp" json:"timestamp"`
 	Power                       float64   `gorm:"type:double" json:"power"`
@@ -18,5 +17,6 @@ type SMConsumptionTracker struct {
 	AccumulatedProductionToday  float64   `gorm:"type:double" json:"accumulatedProductionToday"`
 	AccumulatedConsumptionHour  float64   `gorm:"type:double" json:"accumulatedConsumptionHour"`
 	AccumulatedProductionHour   float64   `gorm:"type:double" json:"accumulatedProductionHour"`
+	CurrentPrice                float64   `gorm:"type:double" json:"CurrentPrice"`
 	AccumulatedCostToday        float64   `gorm:"type:double" json:"accumulatedCostToday"`
 }
