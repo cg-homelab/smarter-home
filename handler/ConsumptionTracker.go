@@ -1,11 +1,8 @@
 package handler
 
 import (
-	"app/database"
-	"app/models"
 	"app/workers"
 
-	"github.com/MartinEllegard/tibber-go"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -13,8 +10,7 @@ type CreateConsumptionTrackerInput struct {
 	Token string `json:"token"`
 }
 
-func CreateConsumptionTracker(c *fiber.Ctx) {
-	db := database.QDB
+func CreateConsumptionTracker(c *fiber.Ctx) error {
 	input := new(CreateConsumptionTrackerInput)
 	if err := c.BodyParser(input); err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -26,21 +22,27 @@ func CreateConsumptionTracker(c *fiber.Ctx) {
 
 	worker, err := workers.CreateTibberWorker(input.Token)
 	if err == nil {
-		worker.Init()
-		worker.StartTracking(func(lm tibber.LiveMeasurement, err error) error {
-			if (err != nil || lm == tibber.LiveMeasurement{}) {
-				return err
-			}
+		workerInitErr := worker.Init()
+		if workerInitErr != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Could not create Tracker",
+				"data":    workerInitErr,
+			})
+		}
+		err := worker.StartTracking()
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Could not create Tracker",
+				"data":    err,
+			})
+		}
 
-			consumption := new(models.SMConsumptionTracker)
-
-			consumption.Timestamp = lm.Timestamp
-			consumption.AccumulatedConsumptionHour = float64(lm.AccumulatedConsumptionLastHour)
-			consumption.AccumulatedConsumptionToday = float64(lm.AccumulatedConsumption)
-
-			db.Create(consumption)
-		})
+		return c.JSON(fiber.Map{"status": "success", "message": "Created Subscripber correctly", "data": ""})
 	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Created Subscripber correctly", "data": ""})
 }
 
 // GetAllProducts query all products

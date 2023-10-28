@@ -21,10 +21,14 @@ func main() {
 	// app.Use(cors.New())
 
 	qdbConfig := database.QDBConfig{
-		ConnectionString: config.Config("QDB_WIRE"),
+		ConnectionString: config.Config("QDBWIRE"),
+		LineProto:        config.Config("QDBINFLUX"),
 	}
 
-	database.Connec()
+	err := qdbConfig.ConnectQDB()
+	if err != nil {
+		panic(err)
+	}
 
 	router.SetupRoutes(app)
 	log.Fatal(app.Listen(":3000"))

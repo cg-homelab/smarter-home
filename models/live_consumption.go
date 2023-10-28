@@ -5,7 +5,7 @@ import (
 )
 
 type LiveConsumption struct {
-	HomeId                      string    `gorm:"type:sample" json:"homeId"`
+	HomeId                      string    `gorm:"type:symbol" json:"homeId"`
 	Timestamp                   time.Time `gorm:"type:timestamp" json:"timestamp"`
 	Power                       float64   `gorm:"type:double" json:"power"`
 	MinPower                    float64   `gorm:"type:double" json:"minPower"`

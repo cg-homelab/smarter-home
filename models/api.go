@@ -5,11 +5,13 @@ import (
 )
 
 // Product struct
-type PriceInfo struct {
-	HomeId        string    `gorm:"type:sample" json:"homeId"`
-	Timestamp     time.Time `gorm:"type:timestamp" json:"timestamp"`
-	TotalProvider float64   `gorm:"type:double" json:"totalProvider"`
-	Energy        float64   `gorm:"type:double" json:"energy"`
-	Tax           float64   `gorm:"type:double" json:"tax"`
-	Currency      string    `gorm:"type:symbol" json:"currency"`
+type ElectricityPrice struct {
+	HomeId          string    `gorm:"type:symbol" json:"homeId"`
+	Timestamp       time.Time `gorm:"type:timestamp" json:"timestamp"`
+	TotalByProvider float64   `gorm:"type:double" json:"totalProvider"`
+	Spot            float64   `gorm:"type:double" json:"energy"`
+	Tax             float64   `gorm:"type:double" json:"tax"`
+	Calculated      float64   `gorm:"type:double" json:"calculated"`
+	Grid            float64   `gorm:"type:double" json:"grid"`
+	Currency        string    `gorm:"type:symbol" json:"currency"`
 }
