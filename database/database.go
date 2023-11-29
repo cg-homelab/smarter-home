@@ -13,36 +13,44 @@ import (
 
 // DB gorm connector
 var QDB *gorm.DB
+var PDB *gorm.DB
 var QDBChannel chan models.LiveConsumption
 
-type QDBConfig struct {
+type DBConfig struct {
 	ConnectionString string
 	LineProto        string
+	Type             string
 }
 
-func (dbConfig *QDBConfig) ConnectQDB() error {
+func (dbConfig *DBConfig) ConnectDB() error {
 	//
 	dsn := dbConfig.ConnectionString
 
-	questDb, qdberr := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, dbErr := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
-	if qdberr != nil {
-		return qdberr
+	if dbErr != nil {
+		return dbErr
 	}
 
-	questDb.AutoMigrate(&models.LiveConsumption{})
+	if dbConfig.Type == "quest" {
+		db.AutoMigrate(&models.LiveConsumption{}, &models.ElectricityPrice{})
 
-	sender, senderErr := qdb.NewLineSender(context.Background(), qdb.WithAddress(dbConfig.LineProto))
-	if senderErr != nil {
-		return senderErr
+		sender, senderErr := qdb.NewLineSender(context.Background(), qdb.WithAddress(dbConfig.LineProto))
+		if senderErr != nil {
+			return senderErr
+		}
+		ch := make(chan models.LiveConsumption)
+		QDBChannel = ch
+
+		// Start qdb line writer
+		go func() {
+			QdbSenderListener(QDBChannel, sender)
+		}()
+		QDB = db
+	} else {
+		db.AutoMigrate(&models.User{}, &models.Home{})
+		PDB = db
 	}
-	ch := make(chan models.LiveConsumption)
-	QDBChannel = ch
-
-	// Start qdb line writer
-	go func() {
-		QdbSenderListener(QDBChannel, sender)
-	}()
 
 	return nil
 }

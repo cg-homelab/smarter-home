@@ -91,3 +91,9 @@ func (worker *TibberWorker) ProccessMessages(channel chan tibber.LiveMeasurement
 
 	log.Println("Stopped tibber message processor")
 }
+
+func CloseConnection() {
+	for _, worker := range TibberWorkers {
+		worker.tibberClient.Close()
+	}
+}
