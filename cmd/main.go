@@ -20,23 +20,13 @@ func main() {
 	})
 	// app.Use(cors.New())
 
-	qdbConfig := database.DBConfig{
-		ConnectionString: config.Config("QDBWIRE"),
-		LineProto:        config.Config("QDBINFLUX"),
-		Type:             "quest",
-	}
-
-	pdbConfig := database.DBConfig{
+	dbConfig := database.DBConfig{
 		ConnectionString: config.Config("PDBWIRE"),
 	}
 
-	dberr1 := qdbConfig.ConnectDB()
-	dberr2 := pdbConfig.ConnectDB()
-	if dberr1 != nil {
-		panic(dberr1)
-	}
-	if dberr2 != nil {
-		panic(dberr2)
+	dbErr := dbConfig.ConnectDB()
+	if dbErr != nil {
+		panic(dbErr)
 	}
 
 	router.SetupRoutes(app)

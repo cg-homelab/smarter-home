@@ -23,12 +23,12 @@ func SetupRoutes(app *fiber.App) {
 	//user.Get("/:id", handler.GetUser)
 	// user.Post("/", handler.CreateUser)
 	// user.Patch("/:id", middleware.Protected(), handler.UpdateUser)
-
 	// user.Delete("/:id", middleware.Protected(), handler.DeleteUser)
-	// Product
-	liveConsumption := api.Group("/live-consumption")
-	// product.Get("/", handler.GetAllProducts)
-	// product.Get("/:id", handler.GetProduct)
-	liveConsumption.Post("/", handler.CreateConsumptionTracker)
-	// product.Delete("/:id", middleware.Protected(), handler.DeleteProduct)
+
+	// ConsumptionMetrics
+	consumptionMetrics := api.Group("/consumption-metrics")
+	// consumptionMetrics.Get("/", handler.GetAllProducts)
+	// consumptionMetrics.Get("/:id", handler.GetProduct)
+	consumptionMetrics.Post("/", handler.CreateConsumptionMetrics)
+	// consumptionMetrics.Delete("/:id", middleware.Protected(), handler.DeleteProduct)
 }

@@ -1,48 +1,41 @@
 package handler
 
 import (
-	"app/workers"
+	"time"
 
+	"app/database"
+	"app/models"
 	"github.com/gofiber/fiber/v2"
 )
 
-type CreateConsumptionTrackerInput struct {
-	Token string `json:"token"`
+type ConsumptionMetricInput struct {
+	Data []models.ConsumptionMetric `json:"data"`
 }
 
-func CreateConsumptionTracker(c *fiber.Ctx) error {
-	input := new(CreateConsumptionTrackerInput)
+// Save ConsumptionMetrics
+func CreateConsumptionMetrics(c *fiber.Ctx) error {
+	db := database.DB
+
+	input := new(ConsumptionMetricInput)
+
 	if err := c.BodyParser(input); err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Could not create Tracker",
+			"message": "Could not parse input data",
 			"data":    err,
 		})
 	}
 
-	worker, err := workers.CreateTibberWorker(input.Token)
-	if err == nil {
-		workerInitErr := worker.Init()
-		if workerInitErr != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Could not create Tracker",
-				"data":    workerInitErr,
-			})
-		}
-		err := worker.StartTracking()
-		if err != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Could not create Tracker",
-				"data":    err,
-			})
-		}
-
-		return c.JSON(fiber.Map{"status": "success", "message": "Created Subscripber correctly", "data": ""})
+	result := db.Create(&input.Data)
+	if result.Error != nil {
+		return c.JSON(fiber.Map{
+			"status":  "error",
+			"message": "Could not insert data in database",
+			"data":    result.Error,
+		})
 	}
 
-	return c.JSON(fiber.Map{"status": "success", "message": "Created Subscripber correctly", "data": ""})
+	return c.JSON(fiber.Map{"status": "success", "message": "Data Inserted correctly", "data": ""})
 }
 
 // GetAllProducts query all products
