@@ -72,7 +72,7 @@ func QdbSenderListener(rx <-chan models.LiveConsumption, lineSender *qdb.LineSen
 		if (message != models.LiveConsumption{}) {
 			err := lineSender.
 				Table("live_consumptions").
-				Symbol("home_id", message.HomeId).
+				Symbol("home_id", message.HomeId.String()).
 				TimestampColumn("timestamp", message.Timestamp).
 				Float64Column("power", message.Power).
 				Float64Column("min_power", message.MinPower).
