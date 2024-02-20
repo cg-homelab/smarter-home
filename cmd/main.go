@@ -21,7 +21,7 @@ func main() {
 	// app.Use(cors.New())
 
 	dbConfig := database.DBConfig{
-		ConnectionString: config.Config("PDBWIRE"),
+		ConnectionString: config.Config("DATABASE_URL"),
 	}
 
 	dbErr := dbConfig.ConnectDB()

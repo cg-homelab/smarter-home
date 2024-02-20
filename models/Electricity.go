@@ -7,7 +7,7 @@ import (
 )
 
 type ElectricityDeal struct {
-	ID                       uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primeryKey" json:"id"`
+	ID                       uuid.UUID `gorm:"type:uuid;primeryKey" json:"id"`
 	UserID                   uuid.UUID `json:"userId"`
 	PowerProvider            string    `json:"powerProvider"`
 	PowerGovSupportThreshold float64   `json:"powerGovSupportThreshold"`

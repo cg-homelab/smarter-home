@@ -5,11 +5,11 @@ import (
 )
 
 type User struct {
-	ID               uuid.UUID         `gorm:"type:uuid;default:uuid_generate_v4();primeryKey" json:"id"`
+	ID               uuid.UUID         `gorm:"type:uuid;primeryKey" json:"id"`
 	FirstName        string            `json:"firstName"`
 	LastName         string            `json:"lastName"`
-	Homes            []Home            `gorm:"foreignKey:UserID;references:ID" json:"homes"`
-	ElectricityDeals []ElectricityDeal `gorm:"foreignKey:UserID;references:ID" json:"electricityDeals"`
+	Homes            []Home            `gorm:"foreignKey:user_id;references:id" json:"homes"`
+	ElectricityDeals []ElectricityDeal `gorm:"foreignKey:user_id;references:id" json:"electricityDeals"`
 }
 
 type Home struct {

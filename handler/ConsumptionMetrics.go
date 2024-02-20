@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"time"
-
 	"app/database"
 	"app/models"
 	"github.com/gofiber/fiber/v2"
