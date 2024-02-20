@@ -26,6 +26,21 @@ func (dbConfig *DBConfig) ConnectDB() error {
 	}
 
 	db.AutoMigrate(&models.User{}, &models.Home{}, &models.ConsumptionMetric{}, &models.ElectricityDeal{}, &models.ElectricityPrice{})
+
+	// Custom timescale migrations
+	createConsumptionHyperTables := "select create_hypertable('consumption_metrics', by_range('timestamp', INTERVAL '1 month'), if_not_exists => TRUE);"
+	createElectricityPriceHyperTables := "select create_hypertable('electricity_prices', by_range('timestamp', INTERVAL '1 month'), if_not_exists => TRUE);"
+
+	cchtResult := db.Raw(createConsumptionHyperTables)
+	cehtResult := db.Raw(createElectricityPriceHyperTables)
+
+	if cchtResult.Error != nil {
+		panic(cchtResult.Error)
+	}
+	if cehtResult.Error != nil {
+		panic(cehtResult.Error)
+	}
+
 	DB = db
 
 	return nil
