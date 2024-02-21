@@ -30,14 +30,8 @@ func (dbConfig *DBConfig) ConnectDB() error {
 	// Custom timescale migrations
 	createConsumptionHyperTables := "select create_hypertable('consumption_metrics', by_range('timestamp', INTERVAL '1 month'), if_not_exists => TRUE);"
 	createElectricityPriceHyperTables := "select create_hypertable('electricity_prices', by_range('timestamp', INTERVAL '1 month'), if_not_exists => TRUE);"
-	cchtResult := db.Raw(createConsumptionHyperTables)
-	cehtResult := db.Raw(createElectricityPriceHyperTables)
-	if cchtResult.Error != nil {
-		return cchtResult.Error
-	}
-	if cehtResult.Error != nil {
-		return cehtResult.Error
-	}
+	db.Exec(createConsumptionHyperTables)
+	db.Exec(createElectricityPriceHyperTables)
 
 	DB = db
 
