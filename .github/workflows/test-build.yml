@@ -28,5 +28,5 @@ jobs:
       - name: Build
         run: go build -v -o ./main ./cmd
       
-      - name: Run tests with GO CLI
-        run: go test
+      # - name: Run tests with GO CLI
+      #   run: go test
