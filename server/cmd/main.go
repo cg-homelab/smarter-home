@@ -3,6 +3,7 @@ package main
 import (
 	"app/config"
 	"app/database"
+	"app/handler"
 	"app/router"
 	"log"
 
@@ -24,9 +25,14 @@ func main() {
 		ConnectionString: config.Config("DATABASE_URL"),
 	}
 
-	dbErr := dbConfig.ConnectDB()
+	db, dbErr := dbConfig.ConnectDB()
 	if dbErr != nil {
 		panic(dbErr)
+	}
+
+	router := router.Router{
+		AuthHandler: handler.CreateAuthHandler(db),
+		CMHandler:   handler.CreateCMHandler(db),
 	}
 
 	router.SetupRoutes(app)

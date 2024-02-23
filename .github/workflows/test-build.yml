@@ -3,13 +3,20 @@ name: Build test go
 on:
   push:
     branches: ["main"]
+    paths:
+    - 'server/**'
   pull_request:
     branches: ["main"]
+    paths:
+    - 'server/**'
 
 jobs: 
   build:
 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server/
 
     steps:
       - uses: actions/checkout@v4

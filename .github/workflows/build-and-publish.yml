@@ -3,6 +3,8 @@ name: Docker CI/CD for docker hub
 on:
   release:
     types: [published]
+    paths:
+    - 'server/**'
 
 jobs:
 
@@ -27,8 +29,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
         with:
-          context: .
-          file: ./Dockerfile
+          #Set context to server path
+          context: "{{defaultContext}}:server"
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

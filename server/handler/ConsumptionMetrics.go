@@ -1,20 +1,23 @@
 package handler
 
 import (
-	"app/database"
-	"app/models"
+	"app/model"
+
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
-type ConsumptionMetricInput struct {
-	Data []models.ConsumptionMetric `json:"data"`
+type ConsumptionMetricsHandler struct {
+	db *gorm.DB
 }
 
 // Save ConsumptionMetrics
-func CreateConsumptionMetrics(c *fiber.Ctx) error {
-	db := database.DB
+func (h *ConsumptionMetricsHandler) CreateConsumptionMetrics(c *fiber.Ctx) error {
+	type ConsumptionMetrics struct {
+		Data []model.ConsumptionMetric `json:"data"`
+	}
 
-	input := new(ConsumptionMetricInput)
+	input := new(ConsumptionMetrics)
 
 	if err := c.BodyParser(input); err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -24,7 +27,7 @@ func CreateConsumptionMetrics(c *fiber.Ctx) error {
 		})
 	}
 
-	result := db.Create(&input.Data)
+	result := h.db.Create(&input.Data)
 	if result.Error != nil {
 		return c.JSON(fiber.Map{
 			"status":  "error",
