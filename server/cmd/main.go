@@ -33,6 +33,7 @@ func main() {
 	router := router.Router{
 		AuthHandler: handler.CreateAuthHandler(db),
 		CMHandler:   handler.CreateCMHandler(db),
+		UserHandler: handler.CreateUserHandler(db),
 	}
 
 	router.SetupRoutes(app)

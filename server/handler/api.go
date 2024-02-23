@@ -14,3 +14,7 @@ func CreateAuthHandler(db *gorm.DB) AuthHandler {
 func CreateCMHandler(db *gorm.DB) ConsumptionMetricsHandler {
 	return ConsumptionMetricsHandler{db}
 }
+
+func CreateUserHandler(db *gorm.DB) UserHandler {
+	return UserHandler{db}
+}

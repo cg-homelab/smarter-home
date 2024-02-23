@@ -2,7 +2,7 @@ package router
 
 import (
 	"app/handler"
-	//"app/middleware"
+	"app/middleware"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -10,6 +10,7 @@ import (
 
 type Router struct {
 	AuthHandler handler.AuthHandler
+	UserHandler handler.UserHandler
 	CMHandler   handler.ConsumptionMetricsHandler
 }
 
@@ -24,11 +25,11 @@ func (r *Router) SetupRoutes(app *fiber.App) {
 	auth.Post("/login", r.AuthHandler.Login)
 
 	// User
-	//user := api.Group("/user")
-	//user.Get("/:id", handler.GetUser)
-	// user.Post("/", handler.CreateUser)
-	// user.Patch("/:id", middleware.Protected(), handler.UpdateUser)
-	// user.Delete("/:id", middleware.Protected(), handler.DeleteUser)
+	user := api.Group("/user")
+	user.Get("/:id", r.UserHandler.GetUser)
+	user.Post("/", r.UserHandler.CreateUser)
+	user.Patch("/:id", middleware.Protected(), r.UserHandler.UpdateUser)
+	user.Delete("/:id", middleware.Protected(), r.UserHandler.DeleteUser)
 
 	// ConsumptionMetrics
 	consumptionMetrics := api.Group("/consumption-metrics")
