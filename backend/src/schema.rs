@@ -3,7 +3,7 @@ diesel::table! {
         id -> Uuid,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
-        deleted_at -> Timestamptz,
+        deleted_at -> Nullable<Timestamptz>,
         first_name -> Text,
         last_name -> Text,
         username -> Text,
