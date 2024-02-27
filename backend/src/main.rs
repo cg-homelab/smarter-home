@@ -1,7 +1,7 @@
 use dotenvy::dotenv;
 pub mod error;
 pub mod models;
-pub mod schema;
+pub mod repository;
 
 #[tokio::main()]
 async fn main() {
