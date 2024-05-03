@@ -10,6 +10,10 @@
 .env
 .DS_Store
 
+# rust
+target/
+.cargo/
+
 # Test binary, built with `go test -c`
 *.test
 
