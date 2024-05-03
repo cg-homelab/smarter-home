@@ -1,5 +1,4 @@
 use axum::routing::{get, post};
-use sqlx::postgres::PgPoolOptions;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
@@ -18,14 +17,21 @@ async fn main() {
     tracing::debug!("Connected to database");
 
     // Create tcp listener
-    let listener = TcpListener::bind("0.0.0.0:3001").await.unwrap();
+    let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
     // Set up app with routing
     let app = axum::Router::new()
-        .route("/", get(|| async { "Hello World" }))
+        // Health check endpoint
         .route("/health", get(|| async { "healthy" }))
+        // Power endpoints
         .route("/power", post(api::power::post_power_metric))
+        // TODO: User endpoints
+        .route("/user", get(|| async { "todo" }))
+        // TODO: Add Home endpoints
+        .route("/home", get(|| async { "todo" }))
+        // Add request logging to app
         .layer(TraceLayer::new_for_http())
+        // Bind postgres connection pool to app
         .with_state(pool);
 
     //Log Startup
