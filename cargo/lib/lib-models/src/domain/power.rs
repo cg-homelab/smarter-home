@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PowerMetrics {
     pub home_id: uuid::Uuid,
     pub ts: DateTime<Utc>,
