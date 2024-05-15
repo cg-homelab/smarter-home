@@ -1,7 +1,9 @@
-use lib_models::{domain::power::PowerMetrics, SmError};
+use lib_models::domain::power::PowerMetrics;
 use sqlx::PgPool;
 
-pub async fn write_power_metric(pool: &PgPool, model: PowerMetrics) -> Result<(), SmError> {
+use crate::error::ApiError;
+
+pub async fn write_power_metric(pool: &PgPool, model: PowerMetrics) -> Result<(), ApiError> {
     sqlx::query!(
         // language=PostgrSQL
         r#"
@@ -39,7 +41,6 @@ pub async fn write_power_metric(pool: &PgPool, model: PowerMetrics) -> Result<()
         model.currency
     )
     .execute(pool)
-    .await
-    .map_err(|err| SmError::SqlExeption(err.to_string()))?;
+    .await?;
     Ok(())
 }

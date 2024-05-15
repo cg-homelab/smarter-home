@@ -3,6 +3,7 @@ use std::time::Duration;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 
 pub mod power;
+pub mod user;
 
 pub async fn init() -> PgPool {
     let db_connection_str = std::env::var("DATABASE_URL")
