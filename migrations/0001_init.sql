@@ -1,3 +1,18 @@
+CREATE TABLE IF NOT EXISTS apps (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  home_id UUID NOT NULL,
+  key TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(home_id) REFERENCES homes(id)
+);
+
+CREATE TABLE IF NOT EXISTS apps_home (
+  id SERIAL PRIMARY KEY,
+  app_id
+)
+
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -16,30 +31,40 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE TABLE IF NOT EXISTS homes (
   id UUID PRIMARY KEY,
   name TEXT NOT NULL,
-  real_time_consumption BOOLEAN NOT NULL
+  address TEXT,
 );
 
-CREATE TABLE IF NOT EXISTS power_metrics (
+CREATE TABLE IF NOT EXISTS live_energy_measurement (
   home_id UUID NOT NULL,
   ts TIMESTAMPTZ NOT NULL,
-  power DOUBLE PRECISION NOT NULL,
-  min_power DOUBLE PRECISION NOT NULL,
-  average_power DOUBLE PRECISION NOT NULL,
-  max_power DOUBLE PRECISION NOT NULL,
-  last_meter_consumption DOUBLE PRECISION NOT NULL,
-  last_meter_production DOUBLE PRECISION NOT NULL,
-  accumulated_consumption DOUBLE PRECISION NOT NULL,
-  accumulated_production DOUBLE PRECISION NOT NULL,
-  accumulated_cost DOUBLE PRECISION NOT NULL,
-  accumulated_production_last_hour DOUBLE PRECISION NOT NULL,
-  accumulated_consumption_last_hour DOUBLE PRECISION NOT NULL,
-  currency TEXT NOT NULL
+  meter_power DOUBLE PRECISION NOT NULL,
+  meter_imported DOUBLE PRECISION NOT NULL,
+  meter_exported DOUBLE PRECISION NOT NULL,
+  meter_l1 DOUBLE PRECISION,
+  meter_l2 DOUBLE PRECISION,
+  meter_l3 DOUBLE PRECISION,
+);
+
+CREATE TABLE IF NOT EXISTS live_energy_price (
+  home_id UUID NOT NULL,
+  ts TIMESTAMPTZ NOT NULL,
+  total DOUBLE PRECISION NOT NULL,
+  energy DOUBLE PRECISION NOT NULL,
+  tax DOUBLE PRECISION NOT NULL,
+  grid DOUBLE PRECISION,
+  support DOUBLE PRECISION,
+  level VARCHAR(20) -- VERY_CHEAP(<60%), CHEAP(60%-90%), NORMAL(90%-115%), EXPENSIVE(115%-140%), VERY_EXPENSIVE(<140%)
+);
+
+
+SELECT create_hypertable(
+	'live_energy_measurement',
+	by_range('ts', INTERVAL '1 month'),
+	if_not_exists=>TRUE
 );
 
 SELECT create_hypertable(
-	'power_metrics', 
-	by_range('ts', INTERVAL '1 month'), 
-	create_default_indexes=>FALSE, 
+	'live_energy_price',
+	by_range('ts', INTERVAL '1 year'),
 	if_not_exists=>TRUE
 );
-SELECT add_dimension('power_metrics', by_hash('home_id', 50));
