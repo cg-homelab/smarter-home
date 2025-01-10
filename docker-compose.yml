@@ -2,7 +2,7 @@ services:
   # Backend Application
   backend:
     build:
-      context: ./backend/
+      context: ./src/backend/
       dockerfile: Dockerfile.api
       #target: prod
     restart: unless-stopped
@@ -22,7 +22,7 @@ services:
   # Frontend Application
   frontend:
     build:
-      context: ./frontend/
+      context: ./src/frontend/
       dockerfile: Dockerfile
       #target: frontend
     restart: unless-stopped
@@ -41,7 +41,7 @@ services:
 
   # Database
   database:
-    image: postgres:latest
+    image: timescale/timescaledb-ha:pg17
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME}
