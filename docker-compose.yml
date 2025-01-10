@@ -1,0 +1,66 @@
+services:
+  # Backend Application
+  backend:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile.api
+      #target: prod
+    restart: unless-stopped
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    environment:
+      APP_ENV: ${APP_ENV}
+      BACKEND_PORT: ${BACKEND_PORT}
+      FRONTEND_PORT: ${FRONTEND_PORT}
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - smarter_home
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+      #target: frontend
+    restart: unless-stopped
+    environment:
+      BACKEND_PORT: ${BACKEND_PORT}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_GITHUB_ID: ${AUTH_GITHUB_ID}
+      AUTH_GITHUB_SECRET: ${AUTH_GITHUB_SECRET}
+    depends_on:
+      - backend
+    ports:
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+    networks:
+      - smarter_home
+
+  # Database
+  database:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - smarter_home_database_volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USERNAME} -d ${DB_NAME}'"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - smarter_home
+
+volumes:
+  smarter_home_database_volume:
+networks:
+  smarter_home:

@@ -1,0 +1,48 @@
+# syntax=docker/dockerfile:1
+
+#Set up build stage
+FROM rust:alpine AS build
+
+# Install musl since glibc is not available in the slim image 
+# musl-tools musl-dev
+RUN apk add --no-cache openssl-dev
+RUN apk add --no-cache alpine-sdk
+RUN apk add --no-cache openssl-libs-static
+
+# Create a non-privileged user that the app will run under.
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid 10001 \
+    "smarterhome"
+
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+RUN cargo build --release
+
+# Create stage for finished image
+FROM rust:alpine AS prod
+RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl-libs-static
+
+COPY --from=build /etc/passwd /etc/passwd
+COPY --from=build /etc/group /etc/group
+
+USER smarterhome:smarterhome
+
+COPY --from=build --chown=smarterhome:smarterhome /app/target/release/api /app/api
+
+# Metadata
+LABEL maintainer="Martin Ellegard"
+LABEL repository="https://github.com/MartinEllegard/smarter-home"
+
+# Expose the port that the application listens on.
+EXPOSE 3001
+
+ENTRYPOINT ["./app/api"]
