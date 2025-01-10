@@ -56,24 +56,24 @@ docker-start-db:
 # Check status of database
 db-status:
 	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) status
+		goose -dir=$(MIGRATION_DIR) status
 
 # Reset database ( rollback all migrations )
 db-reset:
 	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) reset
+		goose -dir=$(MIGRATION_DIR) reset
 
 # Rollback last migration
 db-down:
 	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) down
+		goose -dir=$(MIGRATION_DIR) down
 
 # Run all migrations
 db-up:
 	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) up
+		goose -dir=$(MIGRATION_DIR) up
 
 # Create new migration
 db-mig-create:
 	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		go run github.com/pressly/goose/v3/cmd/goose@latest -dir=$(MIGRATION_DIR) create $(filter-out $@,$(MAKECMDGOALS)) sql
+		goose -dir=$(MIGRATION_DIR) create $(filter-out $@,$(MAKECMDGOALS)) sql
