@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   Tooltip,
   TooltipContent,
-  TooltipTrigger
+  TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Analytics } from '@vercel/analytics/react';
 import { User } from './user';
@@ -72,11 +72,11 @@ function DesktopNav() {
         </NavItem>
 
         {/* <NavItem href="/" label="Products"> */}
-          {/* <Package className="h-5 w-5" /> */}
+        {/* <Package className="h-5 w-5" /> */}
         {/* </NavItem> */}
 
         {/* <NavItem href="/customers" label="Customers"> */}
-          {/* <Users2 className="h-5 w-5" /> */}
+        {/* <Users2 className="h-5 w-5" /> */}
         {/* </NavItem> */}
 
         <NavItem href="/charts" label="Charts">
