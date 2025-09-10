@@ -1,8 +1,5 @@
 import "./App.css";
-import { faHome } from "@fortawesome/free-solid-svg-icons";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
-import { faGear } from "@fortawesome/free-solid-svg-icons";
-import { faChartLine } from "@fortawesome/free-solid-svg-icons";
+import { faHome, faUser, faGear, faChartLine } from "@fortawesome/free-solid-svg-icons";
 import NavItem from "./components/nav-item";
 
 
