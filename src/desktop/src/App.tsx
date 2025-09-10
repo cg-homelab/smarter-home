@@ -1,14 +1,9 @@
-import "./App.css";
-import NavBar from "./components/navbar";
+import "./Global.css";
 
 function App() {
 
-  return (
-    <main className="container">
-      <h1 className="title">Smarter Home</h1>
-
-      <NavBar/>
-    </main>
+  return ( 
+    <h1 className="title">Smarter Home</h1>
   );
 }
 
