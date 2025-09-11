@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO power_metrics (\n            home_id,\n            ts,\n            price,\n            power,\n            solar_power,\n            last_meter_consumption,\n            last_meter_production,\n            last_solar_total,\n            consumption_since_midnight,\n            production_since_midnight,\n            solar_since_midnight,\n            cost_since_midnight,\n            currency\n        )\n        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2df3adc32d480c16bb56c44ef25b88ed5fa00e6ee978fdca75a9c49539bcca5a"
+}
