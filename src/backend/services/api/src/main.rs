@@ -12,6 +12,10 @@ async fn main() {
         .with_max_level(Level::DEBUG)
         .init();
 
+    let address = "0.0.0.0:".to_string()
+        + std::env::var("BACKEND_PORT")
+            .unwrap_or_else(|_| "3001".to_string())
+            .as_str();
     // Set up db connection
     let pool = store::init().await;
 
@@ -19,7 +23,7 @@ async fn main() {
     tracing::debug!("Connected to database");
 
     // Create tcp listener
-    let listener = TcpListener::bind("0.0.0.0:3001").await.unwrap();
+    let listener = TcpListener::bind(address.as_str()).await.unwrap();
 
     // Set up app with routing
     let app = routes::create_router(pool);

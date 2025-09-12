@@ -7,16 +7,14 @@ use uuid;
 pub struct PowerMetrics {
     pub home_id: uuid::Uuid,
     pub ts: DateTime<Utc>,
-    pub power: f64,
-    pub min_power: f64,
-    pub max_power: f64,
-    pub average_power: f64,
+    pub price: f64,       //Current electricity price
+    pub power: f64,       //Current wattage draw
+    pub solar_power: f64, //Current wattage production
     pub last_meter_consumption: f64,
     pub last_meter_production: f64,
-    pub accumulated_consumption: f64,
-    pub accumulated_production: f64,
-    pub accumulated_cost: f64,
-    pub accumulated_consumption_last_hour: f64,
-    pub accumulated_production_last_hour: f64,
+    pub last_solar_total: f64,
+    pub consumption_since_midnight: f64,
+    pub production_since_midnight: f64,
+    pub cost_since_midnight: f64,
     pub currency: String,
 }

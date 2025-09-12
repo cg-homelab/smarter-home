@@ -20,28 +20,29 @@ services:
       - smarter_home
 
   # Frontend Application
-  frontend:
-    build:
-      context: ./src/frontend/
-      dockerfile: Dockerfile
-      #target: frontend
-    restart: unless-stopped
-    environment:
-      BACKEND_PORT: ${BACKEND_PORT}
-      NEXTAUTH_URL: ${NEXTAUTH_URL}
-      AUTH_SECRET: ${AUTH_SECRET}
-      AUTH_GITHUB_ID: ${AUTH_GITHUB_ID}
-      AUTH_GITHUB_SECRET: ${AUTH_GITHUB_SECRET}
-    depends_on:
-      - backend
-    ports:
-      - ${FRONTEND_PORT}:${FRONTEND_PORT}
-    networks:
-      - smarter_home
+  # frontend:
+  #   build:
+  #     context: ./src/frontend/
+  #     dockerfile: Dockerfile
+  #     #target: frontend
+  #   restart: unless-stopped
+  #   environment:
+  #     BACKEND_PORT: ${BACKEND_PORT}
+  #     NEXTAUTH_URL: ${NEXTAUTH_URL}
+  #     AUTH_SECRET: ${AUTH_SECRET}
+  #     AUTH_GITHUB_ID: ${AUTH_GITHUB_ID}
+  #     AUTH_GITHUB_SECRET: ${AUTH_GITHUB_SECRET}
+  #   depends_on:
+  #     - backend
+  #   ports:
+  #     - ${FRONTEND_PORT}:${FRONTEND_PORT}
+  #   networks:
+  #     - smarter_home
 
   # Database
   database:
     image: timescale/timescaledb-ha:pg17
+    container_name: smarter-home-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME}

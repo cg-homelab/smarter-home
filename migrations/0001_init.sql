@@ -1,70 +1,21 @@
-CREATE TABLE IF NOT EXISTS apps (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  home_id UUID NOT NULL,
-  key TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY(home_id) REFERENCES homes(id)
-);
-
-CREATE TABLE IF NOT EXISTS apps_home (
-  id SERIAL PRIMARY KEY,
-  app_id
-)
-
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS sessions (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL UNIQUE,
-    session_id VARCHAR NOT NULL,
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
-CREATE TABLE IF NOT EXISTS homes (
-  id UUID PRIMARY KEY,
-  name TEXT NOT NULL,
-  address TEXT,
-);
-
-CREATE TABLE IF NOT EXISTS live_energy_measurement (
+CREATE TABLE IF NOT EXISTS power_metrics (
   home_id UUID NOT NULL,
   ts TIMESTAMPTZ NOT NULL,
-  meter_power DOUBLE PRECISION NOT NULL,
-  meter_imported DOUBLE PRECISION NOT NULL,
-  meter_exported DOUBLE PRECISION NOT NULL,
-  meter_l1 DOUBLE PRECISION,
-  meter_l2 DOUBLE PRECISION,
-  meter_l3 DOUBLE PRECISION,
+  price DOUBLE PRECISION NOT NULL,
+  power DOUBLE PRECISION NOT NULL,
+  solar_power DOUBLE PRECISION NOT NULL,
+  last_meter_consumption DOUBLE PRECISION NOT NULL,
+  last_meter_production DOUBLE PRECISION NOT NULL,
+  last_solar_total DOUBLE PRECISION NOT NULL,
+  consumption_since_midnight DOUBLE PRECISION NOT NULL,
+  production_since_midnight DOUBLE PRECISION NOT NULL,
+  solar_since_midnight DOUBLE PRECISION NOT NULL,
+  cost_since_midnight DOUBLE PRECISION NOT NULL,
+  currency VARCHAR(10) NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS live_energy_price (
-  home_id UUID NOT NULL,
-  ts TIMESTAMPTZ NOT NULL,
-  total DOUBLE PRECISION NOT NULL,
-  energy DOUBLE PRECISION NOT NULL,
-  tax DOUBLE PRECISION NOT NULL,
-  grid DOUBLE PRECISION,
-  support DOUBLE PRECISION,
-  level VARCHAR(20) -- VERY_CHEAP(<60%), CHEAP(60%-90%), NORMAL(90%-115%), EXPENSIVE(115%-140%), VERY_EXPENSIVE(<140%)
-);
-
 
 SELECT create_hypertable(
-	'live_energy_measurement',
+	'power_metrics',
 	by_range('ts', INTERVAL '1 month'),
-	if_not_exists=>TRUE
-);
-
-SELECT create_hypertable(
-	'live_energy_price',
-	by_range('ts', INTERVAL '1 year'),
 	if_not_exists=>TRUE
 );
