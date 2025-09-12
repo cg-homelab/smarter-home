@@ -8,7 +8,7 @@ export default function NavBar() {
       <NavItem to="/" icon={faHome} size={28} className="nav-item" />
       <NavItem to="/user" icon={faUser} size={28} className="nav-item" />
       <NavItem to="/analytics" icon={faChartLine} size={28} className="nav-item" />
-      <NavItem to="/settings" icon={faGear} size={28} className="nav-item" />
+      <NavItem to="/settings" icon={faGear} size={28} className="settings-button" />
     </aside>
   );
 }

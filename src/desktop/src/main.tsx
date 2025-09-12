@@ -5,8 +5,10 @@ import App from "./App";
 import User from "./User";
 import Charts from "./Charts";
 import Settings from "./Settings";
+import UserLogin from "./User-Login";
 import NavBar from "./components/navbar";
 import "./Global.css";
+
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -19,7 +21,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/user" element={<User />} />
           <Route path="/analytics" element={<Charts />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/login" element={<UserLogin />} />
         </Routes>
+        
       </div>
     </BrowserRouter>
   </React.StrictMode>
