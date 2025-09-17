@@ -1,0 +1,185 @@
+name: Pull request merged - Deploy to staging
+
+on:
+  pull_request:
+    types: 
+      - closed
+    branches:
+      - main
+
+env:
+  VERSION_DEFAULT_LEVEL: minor # Default level of bumping semantic versoning
+  FORCE_BUILD: false # Force doing all steps
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  # Get lates tag currently in repo
+  get-latest-tag:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.merged == true }}
+    outputs:
+      tag: ${{ steps.get-latest-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-ecosystem/action-get-latest-tag@v1
+        with:
+          with_initial_version: true
+        id: get-latest-tag
+
+  # Find changed file in this merge
+#   get-changed-files:
+#     runs-on: ubuntu-latest
+#     if: ${{ github.event.pull_request.merged == true }}
+#     outputs:
+#       project-files-changed-any: ${{ steps.project-changed-files.outputs.any_changed }}
+#       iac-files-changed-any: ${{ steps.iac-files-changed.outputs.any_changed }}
+#     steps:
+#       - name: "Checkout repository"
+#         uses: actions/checkout@v4
+#
+#       - name: "Get changed iac files"
+#         id: iac-files-changed
+#         uses: tj-actions/changed-files@v45
+#         with:
+#           files: |
+#             .github/workflows/deploy-**
+#             .github/workflows/run-staging-deploy.yml
+# ##            # bicep/**
+#
+#       - name: "Get changed files for code"
+#         id: project-changed-files
+#         uses: tj-actions/changed-files@v45
+#         with:
+#           files: |
+#             .github/workflows/build-**
+#             .github/workflows/run-staging-deploy.yml
+#             src/**
+#       - name: "Code files changed"
+#         run: |
+#           if ${{ steps.project-changed-files.outputs.any_changed == 'true' }}; then
+#             echo "${{ steps.project-changed-files.outputs.all_changed_files_count }} bicep files changed"
+#           else
+#             echo "No code files changed..."
+#           fi
+#           for file in ${{ steps.project-changed-files.outputs.all_changed_and_modified_files }}; do
+#             echo "Code file $file was changed or modified."
+#           done
+#       - name: "IAC files changed"
+#         run: |
+#           if ${{ steps.iac-files-changed.outputs.any_changed == 'true' }}; then
+#             echo "${{ steps.bicep-files-changed.outputs.all_changed_files_count }} bicep files changed"
+#           else
+#             echo "No IAC files changed..."
+#           fi
+#           for file in ${{ steps.iac-files-changed.outputs.all_changed_and_modified_files }}; do
+#             echo "IAC file $file was changed or modified."
+#           done
+
+  # Evaluate deployment needs
+  # evaluate-needs:
+  #   runs-on: ubuntu-latest
+  #   needs: [get-latest-tag, get-changed-files]
+  #   outputs:
+  #     new-tag-requierd: ${{ steps.evaluate.outputs.NEW_TAG_REQUIERD }}
+  #     infrastructure-needs-deployment: ${{ steps.evaluate.outputs.INFRASTRUCTURE_DEPLOYMNET_REQUIRED }}
+  #     project-needs-deployment: ${{ steps.evaluate.outputs.PROJECT_DEPLOYMNET_REQUIRED }}
+  #     force-build: ${{ steps.evaluate.outputs.FORCE_BUILD }}
+  #   steps:
+  #     - name: Evaluation
+  #       id: evaluate
+  #       run: |
+  #         # FIXME: @MartinEllegard - after deployment has started working evaluate if this is needed or if it can be false.
+  #         # Currently set to true by default to always force this workflow to generate a new tag.
+  #         # This is done so that if there is only changes to IAC code there will still be a new tag that we can do a github release on.
+  #         NEW_TAG_REQUIERD=true
+  #         FORCE_BUILD=${{ env.FORCE_BUILD}}
+  #         INFRASTRUCTURE_DEPLOYMNET_REQUIRED=${{ needs.get-changed-files.outputs.iac-files-changed-any }}
+  #         PROJECT_DEPLOYMNET_REQUIRED=${{ needs.get-changed-files.outputs.project-files-changed-any }}
+  #
+  #
+  #         if $NEW_TAG_REQUIERD; then
+  #           PROJECT_DEPLOYMNET_REQUIRED=true
+  #         fi
+  #
+  #
+  #         if ${{needs.get-changed-files.outputs.project-files-changed-any == 'true'}}; then
+  #           echo "Project files was changed and new tag is required"
+  #           NEW_TAG_REQUIERD=true
+  #         fi
+  #         if ${{env.FORCE_BUILD == 'true'}}; then
+  #           echo "Force build is enabled"
+  #           NEW_TAG_REQUIERD=true
+  #           PROJECT_DEPLOYMNET_REQUIRED=true
+  #           INFRASTRUCTURE_DEPLOYMNET_REQUIRED=true
+  #         fi
+  #         if ${{ needs.get-latest-tag.outputs.tag == 'v0.0.1' }}; then
+  #           NEW_TAG_REQUIERD=true
+  #         fi
+  #
+  #
+  #         echo "new tag requierd: $NEW_TAG_REQUIERD"
+  #         echo "infrastructure deployment required: $INFRASTRUCTURE_DEPLOYMNET_REQUIRED"
+  #         echo "project deployment required: $PROJECT_DEPLOYMNET_REQUIRED"
+  #
+  #         echo "NEW_TAG_REQUIERD=$NEW_TAG_REQUIERD" >> $GITHUB_OUTPUT
+  #         echo "INFRASTRUCTURE_DEPLOYMNET_REQUIRED=$INFRASTRUCTURE_DEPLOYMNET_REQUIRED" >> $GITHUB_OUTPUT
+  #         echo "PROJECT_DEPLOYMNET_REQUIRED=$PROJECT_DEPLOYMNET_REQUIRED" >> $GITHUB_OUTPUT
+  #         echo "FORCE_BUILD=$FORCE_BUILD" >> $GITHUB_OUTPUT
+
+  # Find and set correct deployment tag
+  set-deployment-tag:
+    runs-on: ubuntu-latest
+    needs: [get-latest-tag]
+    if: ${{ github.event.pull_request.merged == true }}
+    outputs:
+      tag: ${{ steps.output-deployment-tag.outputs.deployment-tag }}
+    steps:
+      - uses: actions/checkout@main
+
+      - uses: actions-ecosystem/action-release-label@v1
+        id: release-label
+
+      - name: set bump level
+        id: set-bump-level
+        run: |
+          if ${{ steps.release-label.outputs.level != null}}; then
+            echo "level=${{ steps.release-label.outputs.level}}" >> $GITHUB_OUTPUT
+          else
+            echo "level=${{env.VERSION_DEFAULT_LEVEL}}" >> $GITHUB_OUTPUT
+          fi
+
+      # If new tag is required find next smver
+      - uses: actions-ecosystem/action-bump-semver@v1
+        id: bump-semver
+        with:
+          current_version: ${{ needs.get-latest-tag.outputs.tag }}
+          level: ${{ steps.set-bump-level.outputs.level }}
+
+      # If new tag is required create next smver
+      - name: Push tag
+        run: |
+          tag=${{ steps.bump-semver.outputs.new_version }}
+          message='${{ steps.bump-semver.outputs.new_version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git tag -a "${tag}" -m "${message}"
+          git push origin "${tag}"
+
+      - name: Output tag for this deployment
+        id: output-deployment-tag
+        run: |
+            echo "deployment-tag=${{ steps.bump-semver.outputs.new_version }}" >> $GITHUB_OUTPUT
+
+  # Run workflow that builds and push docker images
+  # build-and-push-images:
+  #   needs: [evaluate-needs, set-deployment-tag]
+  #   uses: cg-homelab/smarter-home/.github/workflows/build-docker-images.yml@main
+  #   with:
+  #     deployment-target: 'Staging'
+  #     skip: ${{ needs.evaluate-needs.outputs.project-needs-deployment == 'false' }}
+  #     version: ${{ needs.set-deployment-tag.outputs.tag }}
+  #   secrets: inherit
