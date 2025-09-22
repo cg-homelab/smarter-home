@@ -7,10 +7,6 @@ on:
     branches:
       - main
 
-env:
-  VERSION_DEFAULT_LEVEL: minor # Default level of bumping semantic versioning
-  FORCE_BUILD: false # Force doing all steps
-
 permissions:
   id-token: write
   contents: write
@@ -74,7 +70,7 @@ jobs:
             } else if (labels.includes('release/patch')) {
               level = 'patch';
             } else {
-              level = process.env.VERSION_DEFAULT_LEVEL || 'patch';
+              level = 'patch';
             }
             core.setOutput('level', level);
 
