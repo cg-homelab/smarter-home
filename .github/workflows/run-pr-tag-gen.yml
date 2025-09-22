@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 jobs:
-  # Get lates tag currently in repo
+  # Get latest tag currently in repo
   generate-tag:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.merged == true }}
