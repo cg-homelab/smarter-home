@@ -23,7 +23,7 @@ jobs:
     outputs:
       tag: ${{ steps.get-latest-tag.outputs.tag }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: "Get latest tag"
         id: "get-latest-tag"
