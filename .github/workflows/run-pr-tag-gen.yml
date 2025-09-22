@@ -8,7 +8,7 @@ on:
       - main
 
 env:
-  VERSION_DEFAULT_LEVEL: minor # Default level of bumping semantic versoning
+  VERSION_DEFAULT_LEVEL: minor # Default level of bumping semantic versioning
   FORCE_BUILD: false # Force doing all steps
 
 permissions:
