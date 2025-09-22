@@ -74,13 +74,14 @@ jobs:
       # Bump Semver based on previous tag
       - name: "Bump semantic version"
         id: "bump-semver"
+        env:
+          INPUT_TAG: ${{ steps.get-latest-tag.outputs.tag }}
+          BUMP_LEVEL: ${{ steps.set-bump-level.outputs.level }}
         run: |
           set -e
-          input_tag=${{ steps.get-latest-tag.outputs.tag }}
-          bump_level=${{ steps.set-bump-level.outputs.level }}
           # Read inputs from GitHub Actions
-          CURRENT_VERSION="${1:-$(echo "${input_tag}")}"
-          BUMP_LEVEL="${2:-$(echo "${bump_level}")}"
+          CURRENT_VERSION="${1:-$INPUT_TAG}"
+          BUMP_LEVEL="${2:-$BUMP_LEVEL}"
 
           # Valid bump levels
           VALID_LEVELS=("major" "premajor" "minor" "preminor" "patch" "prepatch" "prerelease")
