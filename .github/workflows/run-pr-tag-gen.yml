@@ -71,10 +71,26 @@ jobs:
 
           echo "level=${level}" >> $GITHUB_OUTPUT
 
+      - name: Determine release label
+        id: release-label
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const labels = github.event.pull_request.labels.map(label => label.name);
+            let level = null;
+            if (labels.includes('semver:major')) {
+              level = 'major';
+            } else if (labels.includes('semver:minor')) {
+              level = 'minor';
+            } else if (labels.includes('semver:patch')) {
+              level = 'patch';
+            }
+            core.setOutput('level', level);
+
       - name: set bump level
         id: set-bump-level
         run: |
-          if ${{ steps.release-label.outputs.level != null}}; then
+          if [ "${{ steps.release-label.outputs.level }}" != "" ]; then
             echo "level=${{ steps.release-label.outputs.level}}" >> $GITHUB_OUTPUT
           else
             echo "level=${{env.VERSION_DEFAULT_LEVEL}}" >> $GITHUB_OUTPUT
