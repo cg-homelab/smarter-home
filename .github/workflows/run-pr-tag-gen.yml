@@ -131,7 +131,7 @@ jobs:
           # Set GitHub Actions output
           echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
-      # If new tag is required create next smver
+      # If new tag is required create next semver
       - name: Push tag
         run: |
           tag=${{ steps.bump-semver.outputs.new_version }}
