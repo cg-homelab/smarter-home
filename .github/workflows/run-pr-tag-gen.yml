@@ -135,8 +135,4 @@ jobs:
           git tag -a "${tag}" -m "${message}"
           git push origin "${tag}"
 
-      - name: Output tag for this deployment
-        id: output-deployment-tag
-        run: |
-            echo "deployment-tag=${{ steps.bump-semver.outputs.new_version }}" >> $GITHUB_OUTPUT
 
