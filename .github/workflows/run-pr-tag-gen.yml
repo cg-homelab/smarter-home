@@ -67,7 +67,7 @@ jobs:
             } else if (labels.includes('release/patch')) {
               level = 'patch';
             } else {
-              level = 'patch';
+              level = process.env.VERSION_DEFAULT_LEVEL || 'patch';
             }
             core.setOutput('level', level);
 
