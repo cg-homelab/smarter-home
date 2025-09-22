@@ -88,7 +88,7 @@ jobs:
           input_tag=${{ steps.get-latest-tag.outputs.tag }}
           bump_level=${{ steps.set-bump-level.outputs.level }}
           # Read inputs from GitHub Actions
-          CURRENT_VERSION="${1:-$(echo "${tag}")}"
+          CURRENT_VERSION="${1:-$(echo "${input_tag}")}"
           BUMP_LEVEL="${2:-$(echo "${bump_level}")}"
 
           # Valid bump levels
