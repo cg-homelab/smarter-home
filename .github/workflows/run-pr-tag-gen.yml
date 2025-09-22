@@ -89,7 +89,7 @@ jobs:
           # Valid bump levels
           VALID_LEVELS=("major" "premajor" "minor" "preminor" "patch" "prepatch" "prerelease")
 
-          npm install -g semver
+          npm install -g semver@7.6.3
 
           # Check if semver CLI is available
           if ! command -v semver &> /dev/null; then
