@@ -1,0 +1,130 @@
+name: "Pull request merged - Generate git tag with new version"
+
+on:
+  pull_request:
+    types: 
+      - closed
+    branches:
+      - main
+
+env:
+  VERSION_DEFAULT_LEVEL: minor # Default level of bumping semantic versoning
+  FORCE_BUILD: false # Force doing all steps
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  # Get lates tag currently in repo
+  generate-tag:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.merged == true }}
+    outputs:
+      tag: ${{ steps.get-latest-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: "Get latest tag"
+        id: "get-latest-tag"
+        run: |
+          set -e
+
+          git config --global --add safe.directory /github/workspace
+
+          git fetch --tags
+          # This suppress an error occurred when the repository is a complete one.
+          git fetch --prune --unshallow || true
+
+          latest_tag=''
+
+          # Get a latest tag in the shape of semver.
+          for ref in $(git for-each-ref --sort=-creatordate --format '%(refname)' refs/tags); do
+            tag="${ref#refs/tags/}"
+            if echo "${tag}" | grep -Eq '^v?([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$'; then
+              latest_tag="${tag}"
+              break
+            fi
+          done
+
+          if [ "${latest_tag}" = '' ]; then
+            latest_tag="v0.0.0"
+          fi
+
+          echo "tag=${latest_tag}" >> $GITHUB_OUTPUT
+
+      - name: set bump level
+        id: set-bump-level
+        run: |
+          if ${{ steps.release-label.outputs.level != null}}; then
+            echo "level=${{ steps.release-label.outputs.level}}" >> $GITHUB_OUTPUT
+          else
+            echo "level=${{env.VERSION_DEFAULT_LEVEL}}" >> $GITHUB_OUTPUT
+          fi
+
+      # Bump Semver based on previous tag
+      - name: "Bump semantic version"
+        id: "bump-semver"
+        run: |
+          set -e
+          input_tag=${{ steps.get-latest-tag.outputs.tag }}
+          bump_level=${{ steps.set-bump-level.outputs.level }}
+          # Read inputs from GitHub Actions
+          CURRENT_VERSION="${1:-$(echo "${tag}")}"
+          BUMP_LEVEL="${2:-$(echo "${bump_level}")}"
+
+          # Valid bump levels
+          VALID_LEVELS=("major" "premajor" "minor" "preminor" "patch" "prepatch" "prerelease")
+
+          # Check if semver CLI is available
+          if ! command -v semver &> /dev/null; then
+            echo "::error::'semver' CLI not found. Install with: npm install -g semver"
+            exit 1
+          fi
+
+          # Validate semver
+          if ! semver -r "*" "$CURRENT_VERSION" > /dev/null 2>&1; then
+            echo "::error::$CURRENT_VERSION is not a valid semver"
+            exit 1
+          fi
+
+          # Validate bump level
+          if [[ ! " ${VALID_LEVELS[*]} " =~ " ${BUMP_LEVEL} " ]]; then
+            echo "::error::$BUMP_LEVEL is not a supported bump level. Use one of: ${VALID_LEVELS[*]}"
+            exit 1
+          fi
+
+          # Check for 'v' prefix
+          HAS_V_PREFIX=0
+          if [[ "$CURRENT_VERSION" == v* ]]; then
+            HAS_V_PREFIX=1
+            # Strip the 'v' for processing
+            CURRENT_VERSION="${CURRENT_VERSION#v}"
+          fi
+
+          # Calculate new version
+          NEW_VERSION=$(semver -i "$BUMP_LEVEL" "$CURRENT_VERSION")
+
+          # Add back 'v' prefix if needed
+          if [[ "$HAS_V_PREFIX" -eq 1 ]]; then
+            NEW_VERSION="v$NEW_VERSION"
+          fi
+
+          # Set GitHub Actions output
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      # If new tag is required create next smver
+      - name: Push tag
+        run: |
+          tag=${{ steps.bump-semver.outputs.new_version }}
+          message='${{ steps.bump-semver.outputs.new_version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git tag -a "${tag}" -m "${message}"
+          git push origin "${tag}"
+
+      - name: Output tag for this deployment
+        id: output-deployment-tag
+        run: |
+            echo "deployment-tag=${{ steps.bump-semver.outputs.new_version }}" >> $GITHUB_OUTPUT
+
