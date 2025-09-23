@@ -67,7 +67,6 @@ jobs:
       - name: Set bump level
         id: set-bump-level
         uses: actions/github-script@v8
-        env:
         with:
           script: |
             # Get labels for pull_request
