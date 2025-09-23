@@ -23,7 +23,6 @@ validate-system:
 
 install-dependencies: validate-system
 	@echo "Installing dependencies..."
-	@cd src/go-backend && \
 	echo "Installing database dependencies..." && \
 	cargo install sqlx-cli --no-default-features --features rustls,postgres
 	@cd src/frontend && \
