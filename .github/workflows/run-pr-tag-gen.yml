@@ -73,7 +73,7 @@ jobs:
             await script({github, context, core})
 
       # Bump Semver based on previous tag
-      - run: npm install -g semver
+      - run: npm install semver
       - name: "Bump semantic version"
         id: "bump-semver"
         env:
