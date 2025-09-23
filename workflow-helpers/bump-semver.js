@@ -5,17 +5,17 @@ module.exports = async (gitfunc, semver) => {
 // @ts-check
 /** @param {import('@actions/github-script').AsyncFunctionArguments} gitfunc */
 /** @param {import('semver')} semver */
-async function run(gitfunc, semver) {
-  gitfunc.core.debug("Running something at the moment");
+async function run({ core }, semver) {
+  core.debug("Running something at the moment");
   try {
     const currentVersion = process.env.INPUT_TAG;
     const bumpLevel = process.env.BUMP_LEVEL || 'patch';
 
     const newVersion = await bumpSemver(semver, currentVersion, bumpLevel);
-    git.core.setOutput('new_version', newVersion);
+    core.setOutput('new_version', newVersion);
   } catch (e) {
-    git.core.error(e);
-    git.core.setFailed(e.message);
+    core.error(e);
+    core.setFailed(e.message);
   }
 }
 
