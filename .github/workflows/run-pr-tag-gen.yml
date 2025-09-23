@@ -25,8 +25,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      # Install dependencies
-      - run: npm install -g semver@7.6.3
 
       # Get Latest Tag for Repo
       - name: "Get latest tag"
@@ -64,6 +62,8 @@ jobs:
 
           echo "tag=${latest_tag}" >> $GITHUB_OUTPUT
 
+
+      # Set bump level based on pr labels
       - name: Set bump level
         id: set-bump-level
         uses: actions/github-script@v8
@@ -71,8 +71,9 @@ jobs:
           script: |
             const { default: run } = await import('${{ github.workspace }}/workflow-helpers/get-release-label.js')
             await run({github, context, core})
-      
+
       # Bump Semver based on previous tag
+      - run: npm install -g semver
       - name: "Bump semantic version"
         id: "bump-semver"
         env:
@@ -81,8 +82,9 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            const semver = require('semver');
             const { default: run } = await import('${{ github.workspace }}/workflow-helpers/bump-semver.js')
-            await run({github, context, core})
+            await run({github, context, core}, semver)
 
       # Push new tag to repo
       - name: Push tag
