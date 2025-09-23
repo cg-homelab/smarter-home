@@ -15,12 +15,20 @@ jobs:
   # Get latest tag currently in repo
   generate-tag:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.merged == true }}
+    if: ${{ github.event.pull_request && github.event.pull_request.merged == true }}
     outputs:
       tag: ${{ steps.get-latest-tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
 
+      # Setup node for runner
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      # Install dependencies
+      - run: npm install -g semver@7.6.3
+
+      # Get Latest Tag for Repo
       - name: "Get latest tag"
         id: "get-latest-tag"
         run: |
@@ -58,10 +66,18 @@ jobs:
 
       - name: Set bump level
         id: set-bump-level
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
+        env:
         with:
           script: |
-            const labels = github.event.pull_request.labels.map(label => label.name);
+            # Get labels for pull_request
+            const { data: labelsData } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const labels = labelsData.map(label => label.name);
+
             let level = null;
             if (labels.includes('release/major')) {
               level = 'major';
@@ -88,14 +104,6 @@ jobs:
 
           # Valid bump levels
           VALID_LEVELS=("major" "premajor" "minor" "preminor" "patch" "prepatch" "prerelease")
-
-          npm install -g semver@7.6.3
-
-          # Check if semver CLI is available
-          if ! command -v semver &> /dev/null; then
-            echo "::error::'semver' CLI not found. Install with: npm install -g semver"
-            exit 1
-          fi
 
           # Validate semver
           if ! semver -r "*" "$CURRENT_VERSION" > /dev/null 2>&1; then
@@ -128,14 +136,17 @@ jobs:
           # Set GitHub Actions output
           echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
-      # If new tag is required create next semver
+      # Push new tag to repo
       - name: Push tag
+        env:
+          TAG: ${{ steps.bump-semver.outputs.new_version }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          tag=${{ steps.bump-semver.outputs.new_version }}
-          message='${{ steps.bump-semver.outputs.new_version }}: PR #${{ github.event.pull_request.number }} ${{ github.event.pull_request.title }}'
+          MESSAGE="${TAG}: PR #${PR_NUMBER} ${PR_TITLE}"
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          git tag -a "${tag}" -m "${message}"
-          git push origin "${tag}"
+          git tag -a "${TAG}" -m "${MESSAGE}"
+          git push origin "${TAG}"
 
 
