@@ -1,7 +1,10 @@
 
 import * as semver from 'semver';
 
-module.exports = async ({ github, context, core }) => {
+// @ts-check
+/** @param {import('@actions/github-script').AsyncFunctionArguments} AsyncFunctionArguments */
+export default async ({ github, core, context }) => {
+  core.debug("Running something at the moment");
   try {
     const currentVersion = process.env.INPUT_TAG;
     const bumpLevel = process.env.BUMP_LEVEL || 'patch';
@@ -12,7 +15,7 @@ module.exports = async ({ github, context, core }) => {
     core.error(e);
     core.setFailed(e.message);
   }
-}
+};
 
 async function bumpSemver(
   currentVersion,

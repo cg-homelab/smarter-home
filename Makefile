@@ -31,6 +31,8 @@ install-dependencies: validate-system
 	@cd src/desktop && \
 	echo "Installing desktop dependencies..." && \
 	npm install
+	@echo "Installing github dependencies..." && \
+	npm i -D @actions/github-script@github:actions/github-script
 
 ## Running project
 # Start with docker

@@ -1,11 +1,19 @@
-module.exports = async ({ github, context, core }) => {
+
+// @ts-check
+/** @param {import('@actions/github-script').AsyncFunctionArguments} AsyncFunctionArguments */
+export default async ({ github, core, context }) => {
+  core.debug("Running something at the moment");
   try {
     // Get labels for pull_request
-    const labels = await github.rest.issues.listLabelsOnIssue({
+    const request = await github.rest.issues.listLabelsOnIssue({
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: context.issue.number,
-    }).map(label => label.name);
+    });
+    if (request.status !== 200) {
+      throw new Error(`Failed to get labels: ${request.status}`);
+    }
+    const labels = request.data.map(label => label.name);
 
     let level = null;
     if (labels.includes('release/major')) {
@@ -22,4 +30,4 @@ module.exports = async ({ github, context, core }) => {
     core.error(e);
     core.setFailed(e.message);
   }
-}
+};
