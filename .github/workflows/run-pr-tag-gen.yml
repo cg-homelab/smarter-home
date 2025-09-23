@@ -69,71 +69,20 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            # Get labels for pull_request
-            const { data: labelsData } = await github.rest.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const labels = labelsData.map(label => label.name);
-
-            let level = null;
-            if (labels.includes('release/major')) {
-              level = 'major';
-            } else if (labels.includes('release/minor')) {
-              level = 'minor';
-            } else if (labels.includes('release/patch')) {
-              level = 'patch';
-            } else {
-              level = 'patch';
-            }
-            core.setOutput('level', level);
-
+            const script = require('./workflow-helpers/get-release-label.js')
+            await script({github, context, core})
+      
       # Bump Semver based on previous tag
       - name: "Bump semantic version"
         id: "bump-semver"
         env:
           INPUT_TAG: ${{ steps.get-latest-tag.outputs.tag }}
           BUMP_LEVEL: ${{ steps.set-bump-level.outputs.level }}
-        run: |
-          set -e
-          # Read inputs from GitHub Actions
-          CURRENT_VERSION="${1:-$INPUT_TAG}"
-          BUMP_LEVEL="${2:-$BUMP_LEVEL}"
-
-          # Valid bump levels
-          VALID_LEVELS=("major" "premajor" "minor" "preminor" "patch" "prepatch" "prerelease")
-
-          # Validate semver
-          if ! semver -r "*" "$CURRENT_VERSION" > /dev/null 2>&1; then
-            echo "::error::$CURRENT_VERSION is not a valid semver"
-            exit 1
-          fi
-
-          # Validate bump level
-          if [[ ! " ${VALID_LEVELS[*]} " =~ " ${BUMP_LEVEL} " ]]; then
-            echo "::error::$BUMP_LEVEL is not a supported bump level. Use one of: ${VALID_LEVELS[*]}"
-            exit 1
-          fi
-
-          # Check for 'v' prefix
-          HAS_V_PREFIX=0
-          if [[ "$CURRENT_VERSION" == v* ]]; then
-            HAS_V_PREFIX=1
-            # Strip the 'v' for processing
-            CURRENT_VERSION="${CURRENT_VERSION#v}"
-          fi
-
-          # Calculate new version
-          NEW_VERSION=$(semver -i "$BUMP_LEVEL" "$CURRENT_VERSION")
-
-          # Add back 'v' prefix if needed
-          if [[ "$HAS_V_PREFIX" -eq 1 ]]; then
-            NEW_VERSION="v$NEW_VERSION"
-          fi
-
-          # Set GitHub Actions output
-          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const script = require('./workflow-helpers/bump-semver.js')
+            await script({github, context, core})
 
       # Push new tag to repo
       - name: Push tag

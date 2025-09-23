@@ -25,3 +25,6 @@ target/
 
 # Go workspace file
 go.work
+
+# JS / TS
+node_modules/
