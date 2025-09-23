@@ -53,15 +53,14 @@ jobs:
           for ref in $(git for-each-ref --sort=-creatordate --count 1 --format="%(refname:short)" "refs/tags/*"); do
             tag="${ref}"
             echo "${tag}"
-            if echo "${tag}" | grep -Eq "${SEMVER_REGEX}"; then
               latest_tag="${tag}"
-              break
-            fi
           done
 
           if [ "${latest_tag}" = '' ]; then
             latest_tag="v0.0.0"
           fi
+
+          echo "latest_tag=${latest_tag}"
 
           echo "tag=${latest_tag}" >> $GITHUB_OUTPUT
 
