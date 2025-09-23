@@ -1,23 +1,23 @@
 
-import * as semver from 'semver';
-
 // @ts-check
-/** @param {import('@actions/github-script').AsyncFunctionArguments} AsyncFunctionArguments */
-export default async function run({ github, core, context }) {
-  core.debug("Running something at the moment");
+/** @param {import('@actions/github-script').AsyncFunctionArguments} git */
+/** @param {import('semver')} semver */
+export default async function run(git, semver) {
+  git.core.debug("Running something at the moment");
   try {
     const currentVersion = process.env.INPUT_TAG;
     const bumpLevel = process.env.BUMP_LEVEL || 'patch';
 
-    const newVersion = await bumpSemver(currentVersion, bumpLevel);
-    core.setOutput('new_version', newVersion);
+    const newVersion = await bumpSemver(semver, currentVersion, bumpLevel);
+    git.core.setOutput('new_version', newVersion);
   } catch (e) {
-    core.error(e);
-    core.setFailed(e.message);
+    git.core.error(e);
+    git.core.setFailed(e.message);
   }
 }
 
 async function bumpSemver(
+  semver,
   currentVersion,
   bumpLevel
 ) {
