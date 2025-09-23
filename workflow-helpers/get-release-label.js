@@ -1,7 +1,10 @@
 
+module.exports = async ({ github, core, context }) => {
+  await run({ github, core, context });
+}
 // @ts-check
 /** @param {import('@actions/github-script').AsyncFunctionArguments} AsyncFunctionArguments */
-export default async function run({ github, core, context }) {
+async function run({ github, core, context }) {
   core.debug("Running something at the moment");
   try {
     // Get labels for pull_request

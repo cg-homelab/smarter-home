@@ -83,8 +83,8 @@ jobs:
         with:
           script: |
             const semver = require('semver');
-            const { default: run } = await import('${{ github.workspace }}/workflow-helpers/bump-semver.js')
-            await run({github, context, core}, semver)
+            const script = require('./workflow-helpers/bump-semver.js');
+            await script({github, context, core}, semver)
 
       # Push new tag to repo
       - name: Push tag
