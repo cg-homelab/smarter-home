@@ -84,7 +84,7 @@ jobs:
           script: |
             const semver = require('semver');
             const script = require('./workflow-helpers/bump-semver.js');
-            await script({github, context, core}, semver)
+            await script({ core }, semver)
 
       # Push new tag to repo
       - name: Push tag
