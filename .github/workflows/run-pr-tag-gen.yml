@@ -69,8 +69,8 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const script = require('./workflow-helpers/get-release-label.js')
-            await script({github, context, core})
+            const { default: run } = await import('${{ github.workspace }}/workflow-helpers/get-release-label.js')
+            await run({github, context, core})
       
       # Bump Semver based on previous tag
       - name: "Bump semantic version"
@@ -81,8 +81,8 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const script = require('./workflow-helpers/bump-semver.js')
-            await script({github, context, core})
+            const { default: run } = await import('${{ github.workspace }}/workflow-helpers/bump-semver.js')
+            await run({github, context, core})
 
       # Push new tag to repo
       - name: Push tag
