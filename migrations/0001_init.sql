@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS power_metrics (
   home_id UUID NOT NULL,
   ts TIMESTAMPTZ NOT NULL,
@@ -19,3 +21,9 @@ SELECT create_hypertable(
 	by_range('ts', INTERVAL '1 month'),
 	if_not_exists=>TRUE
 );
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP TABLE IF EXISTS power_metrics;
+-- +goose StatementEnd
