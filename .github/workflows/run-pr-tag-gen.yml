@@ -30,9 +30,9 @@ jobs:
       - name: "Get latest tag"
         id: "get-latest-tag"
         run: |
-          set -e
+          # set -e
 
-          git config --global --add safe.directory /github/workspace
+          # git config --global --add safe.directory /github/workspace
 
           git fetch --tags
           # This suppress an error occurred when the repository is a complete one.
@@ -48,8 +48,11 @@ jobs:
           # (?:\+[0-9A-Za-z-]+)? : Optional build metadata, e.g., +001
           # $                     : End of string
           SEMVER_REGEX='^v?\([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)\(-\([0-9A-Za-z-]\+\(\.[0-9A-Za-z-]\+\)*\)\)\?\(\+[0-9A-Za-z-]\+\)\?$'
-          for ref in $(git for-each-ref --sort=-creatordate --format '%(refname)' refs/tags); do
-            tag="${ref#refs/tags/}"
+          #git for-each-ref --sort=-creatordate --count 1 --format="%(refname:short)" "refs/tags/*"
+          #git for-each-ref --sort=-creatordate --format '%(refname)' refs/tags
+          for ref in $(git for-each-ref --sort=-creatordate --count 1 --format="%(refname:short)" "refs/tags/*"); do
+            tag="${ref}"
+            echo "${tag}"
             if echo "${tag}" | grep -Eq "${SEMVER_REGEX}"; then
               latest_tag="${tag}"
               break
@@ -82,6 +85,7 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            console.log(process.env.INPUT_TAG);
             const semver = require('semver');
             const script = require('./workflow-helpers/bump-semver.js');
             await script({ core }, semver)
