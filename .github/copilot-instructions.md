@@ -22,17 +22,16 @@ Always ensure these tools are installed before building:
 - **Rust**: Latest stable version with Cargo
 - **Node.js**: v18+ with npm
 - **Docker**: Latest version with Docker Compose v2
-- **Go**: Required by some tooling (noted in Makefile, though unused in current codebase)
+- **sqlx-cli**: Database migration tool (installed via `cargo install sqlx-cli`)
 
 ### Critical Build Order
 **ALWAYS** follow this exact sequence to avoid build failures:
 
 1. **System Validation**: `make validate-system` 
 2. **Environment Setup**: Copy `.env.example` to `.env` and configure variables
-3. **Database Setup**: `make docker-start-db` then `make db-up`
-4. **Frontend Dependencies**: `cd src/frontend && npm install`
-5. **Desktop Dependencies**: `cd src/desktop && npm install` (or `pnpm install`)
-6. **Rust Build**: `cargo build` (from repository root)
+3. **Dependencies Installation**: `make install-dependencies`
+4. **Database Setup**: `make start-database` then `make db-up`
+5. **Rust Build**: `cargo build` (from repository root)
 
 ### Core Commands
 
@@ -52,7 +51,7 @@ cargo run --bin api
 ```bash
 cd src/frontend
 
-# Install dependencies - ALWAYS run before building
+# Install dependencies (automatically done by make install-dependencies)
 npm install
 
 # Development server
@@ -64,7 +63,7 @@ npm run build
 # Start production server
 npm run start
 
-# Linting (requires initial ESLint configuration)
+# Linting
 npm run lint
 ```
 
@@ -72,8 +71,8 @@ npm run lint
 ```bash
 cd src/desktop
 
-# Install dependencies (uses pnpm)
-npm install  # or pnpm install
+# Install dependencies (automatically done by make install-dependencies)
+npm install
 
 # Development mode
 npm run dev
@@ -84,20 +83,17 @@ npm run build
 # Tauri commands
 npm run tauri dev    # Run in Tauri dev mode
 npm run tauri build  # Build native app
+
+# Or use Makefile
+make start-desktop   # Run desktop app in development mode
 ```
 
-#### Database Operations
+#### Database Operations (SQLx-based)
 ```bash
 # Start database only
-make docker-start-db
+make start-database
 
-# IMPORTANT: First install goose and fix .env file
-go install github.com/pressly/goose/v3/cmd/goose@latest
-export PATH=$HOME/go/bin:$PATH
-
-# Update .env file: change MIGRATION_DIR to "migrations" and add DB_DRIVER=postgres
-
-# Check migration status (after fixing .env)
+# Check migration status
 make db-status
 
 # Run all migrations
@@ -106,46 +102,43 @@ make db-up
 # Reset database (rollback all)
 make db-reset
 
-# Create new migration
-make db-mig-create <migration_name>
+# Rollback last migration
+make db-down
 
-# Alternative: Use goose directly
-goose postgres "postgres://postgres:postgres!@localhost:5432/smarter-home?sslmode=disable" -dir migrations up
+# Create new migration (prompts for name)
+make db-mig-create
+
+# For offline mode (prepare SQL queries)
+make db-prepare-offline
 ```
 
 #### Docker Operations
 ```bash
 # Full stack with Docker
-docker compose up --build
+make start-docker
 
 # Stop all services
-docker compose down
+make stop-docker
+
+# Start just database
+make start-database
 ```
 
 ### Known Issues and Workarounds
 
-#### Critical Makefile Bug
-**ISSUE**: `make install-dependencies` fails with "can't cd to src/go-backend"
-**WORKAROUND**: The Makefile references a non-existent `src/go-backend` directory. Install dependencies manually:
-1. `cd src/frontend && npm install`
-2. `cd src/desktop && npm install`
-3. `cargo build` (for Rust dependencies)
-
-#### Database Migration Setup
-**ISSUE**: Migration commands require correct environment setup and goose installation
-**WORKAROUND**: 
-1. Install goose: `go install github.com/pressly/goose/v3/cmd/goose@latest`
-2. Add to PATH: `export PATH=$HOME/go/bin:$PATH`
-3. Use correct connection format: `postgres://postgres:postgres!@localhost:5432/smarter-home?sslmode=disable`
-4. Fix .env MIGRATION_DIR to point to `migrations` not `src/backend/internal/database/migrations`
-
-#### Frontend ESLint Configuration
-**ISSUE**: Running `npm run lint` prompts for ESLint configuration
-**WORKAROUND**: Choose "Strict (recommended)" when prompted, or configure ESLint manually
+#### Frontend Dependency Vulnerabilities
+**ISSUE**: npm audit shows vulnerabilities in frontend dependencies
+**BEHAVIOR**: This is common with frontend dependencies and doesn't affect functionality. Run `npm audit fix` if needed.
 
 #### Port Conflicts
 **ISSUE**: Frontend dev server may find port 3000 in use
 **BEHAVIOR**: Next.js automatically tries port 3001, 3002, etc. This is normal behavior.
+
+#### Database Connection for Development
+**ISSUE**: Database URL needs different hostnames for Docker vs. host development
+**SOLUTION**: 
+- For Docker: `postgresql://postgres:postgres@database:5432/smarter-home`
+- For host development: `postgresql://postgres:postgres@localhost:5432/smarter-home`
 
 #### Build Timing
 - Frontend build: ~30-60 seconds
@@ -154,6 +147,7 @@ docker compose down
 - Desktop build: ~30-60 seconds
 - Docker build: ~3-5 minutes
 - Database Docker pull: ~2-3 minutes (first time)
+- sqlx-cli installation: ~2-3 minutes (first time)
 
 ## Project Layout
 
@@ -165,10 +159,12 @@ smarter-home/
 │   ├── frontend/              # Next.js web application  
 │   ├── desktop/               # Tauri desktop application
 │   └── lib/                   # Shared Rust libraries
-├── migrations/                # Database schema migrations
+│       ├── lib-models/        # Data models
+│       └── lib-utils/         # Utility functions
+├── migrations/                # Database schema migrations (SQLx)
 ├── docker-compose.yml         # Multi-container setup
 ├── Dockerfile.api            # Backend container definition
-└── Makefile                  # Build automation (has bugs)
+└── Makefile                  # Build automation (modernized)
 ```
 
 ### Key Configuration Files
@@ -189,33 +185,33 @@ Copy `.env.example` to `.env` and configure:
 - **BACKEND_PORT**: API server port (default: 3001)
 - **FRONTEND_PORT**: Next.js port (default: 3000)  
 - **DATABASE_URL**: PostgreSQL connection string
-- **MIGRATION_DIR**: Should be `migrations` (NOT `src/backend/internal/database/migrations`)
-- **DB_DRIVER**: Should be `postgres`
+- **DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD**: Database connection details
 - **AUTH_SECRET**: NextAuth.js secret key
 - **AUTH_GITHUB_ID/SECRET**: GitHub OAuth credentials
 
-**CRITICAL**: After copying .env.example to .env, you must fix:
-1. `MIGRATION_DIR=migrations` (remove the incorrect src/backend path)
-2. Add `DB_DRIVER=postgres` 
-3. For local development: `DATABASE_URL="postgres://postgres:postgres!@localhost:5432/smarter-home?sslmode=disable"`
+**CRITICAL**: The `.env.example` file provides correct defaults, but you may need to adjust `DATABASE_URL` based on your development setup:
+- For Docker development: use `database` as hostname
+- For local development: use `localhost` as hostname
 
-### Dependencies Not Obvious from Structure
+### Dependencies and Tools
 - **TimescaleDB**: PostgreSQL extension for time-series data (required for database)
-- **Goose**: Database migration tool (installed via Go)
-- **Air**: Rust development server (optional, for hot reload)
+- **sqlx-cli**: Database migration tool (replaces older goose-based setup)
 - **Vercel Analytics**: Integrated in frontend for usage tracking
+- **Auth.js**: Authentication system for the frontend
+- **Shadcn UI**: Component library for the frontend
 
 ### Validation Steps
-1. **Database Health**: `docker compose ps` should show healthy database
-2. **API Health**: `curl http://localhost:3001/health` (if health endpoint exists)
-3. **Frontend**: Navigate to `http://localhost:3000` should load dashboard
-4. **Build Artifacts**: Check for `.next/` (frontend) and `target/` (Rust) directories
+1. **System Prerequisites**: `make validate-system` should pass
+2. **Database Health**: `docker compose ps` should show healthy database
+3. **API Health**: `cargo build` should complete successfully
+4. **Frontend**: Navigate to `http://localhost:3000` should load dashboard
+5. **Build Artifacts**: Check for `.next/` (frontend) and `target/` (Rust) directories
 
 ### Repository Root Files
-- `README.md`: Basic project description (minimal)
+- `README.md`: Basic project description 
 - `Cargo.toml`: Rust workspace configuration with 3 members
 - `Cargo.lock`: Rust dependency lock file
-- `Makefile`: Build automation (contains bugs with go-backend reference)
+- `Makefile`: Build automation (modernized, sqlx-based)
 - `docker-compose.yml`: Multi-service container setup
 - `Dockerfile.api`: Rust API container definition
 - `.env.example`: Environment variable template
@@ -227,6 +223,8 @@ Copy `.env.example` to `.env` and configure:
 - **Frontend Layout**: `src/frontend/app/layout.tsx` - Next.js root layout  
 - **Desktop Entry**: `src/desktop/src/main.tsx` - React app entry
 - **Database Schema**: `migrations/0001_init.sql` - TimescaleDB table setup
+- **Shared Models**: `src/lib/lib-models/` - Common data structures
+- **Utilities**: `src/lib/lib-utils/` - Shared utility functions
 
 ## Instructions for Coding Agents
 
@@ -235,17 +233,45 @@ Copy `.env.example` to `.env` and configure:
 When working on this repository:
 
 1. **Always start with `make validate-system`** to ensure prerequisites
-2. **Copy `.env.example` to `.env`** before any database operations
-3. **Use Docker Compose v2 syntax** (`docker compose`, not `docker-compose`)
-4. **Install frontend dependencies first** before any frontend operations
-5. **Avoid `make install-dependencies`** due to the go-backend bug
-6. **Use exact build order specified above** to prevent failures
-7. **Test both dev and production builds** after making changes
-8. **Verify Docker container health** when using containerized services
+2. **Use `make install-dependencies`** to install all required dependencies
+3. **Copy `.env.example` to `.env`** before any database operations
+4. **Use Docker Compose v2 syntax** (`docker compose`, not `docker-compose`)
+5. **Use exact build order specified above** to prevent failures
+6. **Test both dev and production builds** after making changes
+7. **Verify Docker container health** when using containerized services
 
-For common tasks:
+### Modern Makefile Commands
+The project has been modernized to use sqlx-cli instead of goose. Available commands:
+
+**System & Dependencies:**
+- `make validate-system` - Check prerequisites (Cargo, npm)
+- `make install-dependencies` - Install all project dependencies
+
+**Running Services:**
+- `make start-docker` - Start full stack with Docker
+- `make start-database` - Start only the database
+- `make start-desktop` - Start desktop app in dev mode
+- `make stop-docker` - Stop Docker services
+
+**Database Operations:**
+- `make db-status` - Check migration status
+- `make db-up` - Apply all migrations
+- `make db-down` - Rollback last migration  
+- `make db-reset` - Rollback all migrations
+- `make db-mig-create` - Create new migration
+- `make db-prepare-offline` - Prepare offline SQL queries
+
+### Common Development Tasks
 - **New API endpoint**: Modify `src/services/api/src/routes/`
 - **Frontend UI changes**: Work in `src/frontend/app/` or `src/frontend/components/`
 - **Database changes**: Create new migration with `make db-mig-create`
 - **Styling**: Use TailwindCSS classes, extend in `tailwind.config.ts`
 - **Desktop features**: Modify `src/desktop/src/` React components
+- **Shared models**: Add to `src/lib/lib-models/`
+- **Utility functions**: Add to `src/lib/lib-utils/`
+
+### Migration from Legacy Setup
+If you encounter references to older tooling:
+- **goose** → **sqlx-cli** (database migrations)
+- **Go backend** → **Rust backend** (no Go code in current version)
+- Manual dependency installation → `make install-dependencies`
