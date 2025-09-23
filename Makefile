@@ -7,10 +7,10 @@ endif
 # Validate system by checking if go, npm, docker and docker compose are installed
 validate-system:
 	@echo "Validating system..."
-	@if command -v go > /dev/null; then \
-					echo "Go is installed..."; \
+	@if command -v cargo > /dev/null; then \
+					echo "Cargo is installed..."; \
 			else \
-					echo "Go is not installed..."; \
+					echo "Cargo is not installed..."; \
 					exit 1; \
 			fi
 	@if command -v npm > /dev/null; then \
@@ -24,56 +24,53 @@ validate-system:
 install-dependencies: validate-system
 	@echo "Installing dependencies..."
 	@cd src/go-backend && \
-	echo "Installing backend dependencies..." && \
-	pwd && \
-	go mod tidy
-	@if command -v air > /dev/null; then \
-            echo "Air is installed, skipping...";\
-        else \
-            go install github.com/air-verse/air@latest; \
-        fi
-	@if command -v goose > /dev/null; then \
-            echo "Goose is installed, skipping...";\
-        else \
-            go install github.com/pressly/goose/v3/cmd/goose@latest; \
-        fi
+	echo "Installing database dependencies..." && \
+	cargo install sqlx-cli --no-default-features --features rustls,postgres
 	@cd src/frontend && \
 	echo "Installing frontend dependencies..." && \
 	npm install
+	@cd src/desktop && \
+	echo "Installing desktop dependencies..." && \
+	npm install
 
+## Running project
 # Start with docker
-docker-up:
+start-docker:
 	@docker compose up --build
 
-# Stop with docker
-docker-down:
-	@docker compose down
-
 # Start just database
-docker-start-db:
+start-database:
 	@docker compose up -d database
 
+# Start desktop app
+start-desktop:
+	@cd src/desktop && npm run dev
+
+# Stop with docker
+stop-docker:
+	@docker compose down
+
+## Database
 # Check status of database
 db-status:
-	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		goose -dir=$(MIGRATION_DIR) status
+	@sqlx migrate info
 
 # Reset database ( rollback all migrations )
 db-reset:
-	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		goose -dir=$(MIGRATION_DIR) reset
+	@sqlx database reset
 
 # Rollback last migration
 db-down:
-	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		goose -dir=$(MIGRATION_DIR) down
+	@sqlx migrate revert
 
 # Run all migrations
 db-up:
-	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		goose -dir=$(MIGRATION_DIR) up
+	@sqlx migrate run
 
 # Create new migration
 db-mig-create:
-	@GOOSE_DRIVER=$(DB_DRIVER) GOOSE_DBSTRING=$(DATABASE_URL) \
-		goose -dir=$(MIGRATION_DIR) create $(filter-out $@,$(MAKECMDGOALS)) sql
+	@sqlx migrate add
+
+# Prepare offline database info
+db-prepare-offline:
+	@cargo sqlx prepare --workspace
