@@ -3,7 +3,7 @@ import * as semver from 'semver';
 
 // @ts-check
 /** @param {import('@actions/github-script').AsyncFunctionArguments} AsyncFunctionArguments */
-export default async ({ github, core, context }) => {
+export default async function run({ github, core, context }) {
   core.debug("Running something at the moment");
   try {
     const currentVersion = process.env.INPUT_TAG;
@@ -15,7 +15,7 @@ export default async ({ github, core, context }) => {
     core.error(e);
     core.setFailed(e.message);
   }
-};
+}
 
 async function bumpSemver(
   currentVersion,

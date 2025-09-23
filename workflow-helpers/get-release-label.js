@@ -1,7 +1,7 @@
 
 // @ts-check
 /** @param {import('@actions/github-script').AsyncFunctionArguments} AsyncFunctionArguments */
-export default async ({ github, core, context }) => {
+export default async function run({ github, core, context }) {
   core.debug("Running something at the moment");
   try {
     // Get labels for pull_request
@@ -30,4 +30,4 @@ export default async ({ github, core, context }) => {
     core.error(e);
     core.setFailed(e.message);
   }
-};
+}
