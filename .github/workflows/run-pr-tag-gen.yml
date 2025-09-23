@@ -69,8 +69,8 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const { default: run } = await import('${{ github.workspace }}/workflow-helpers/get-release-label.js')
-            await run({github, context, core})
+            const script = require('./workflow-helpers/get-release-label.js');
+            await script({github, context, core})
 
       # Bump Semver based on previous tag
       - run: npm install -g semver
