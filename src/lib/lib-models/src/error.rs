@@ -17,6 +17,15 @@ pub enum Error {
 
     #[error("model conversion error")]
     ModelConversionError,
+
+    #[error("not found")]
+    EntityNotFound,
+
+    #[error("wrong password")]
+    WrongPassword,
+
+    #[error("crypto hash error")]
+    CryptoHashError,
 }
 
 impl IntoResponse for Error {
