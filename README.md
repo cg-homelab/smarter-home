@@ -149,15 +149,15 @@ npm run tauri dev  # Run in Tauri dev mode
 ```
 smarter-home/
 ├── 📁 src/
-│   ├── 📁 services/api/       # All Project Services
-│   │   └── 📁 api/            # Rust backend REST API
-│   │   └── 📁 frontend/       # Next.js web application
-│   │   └── 📁 desktop/        # Tauri desktop app
-│   └── 📁 lib/                # Shared Rust libraries
-│       ├── 📁 lib-models/     # Data models
-│       └── 📁 lib-utils/      # Utility functions
-├── 📁 migrations/             # Database migrations
-├── 📄 docker-compose.yml      # Container orchestration
+│   ├── 📁 services/api/      # All Project Services
+│   │   ├── 📁 api/           # Rust backend REST API
+│   │   ├── 📁 frontend/      # Next.js web application
+│   │   └── 📁 desktop/       # Tauri desktop app
+│   └── 📁 lib/               # Shared Rust libraries
+│       ├── 📁 lib-models/    # Data models
+│       └── 📁 lib-utils/     # Utility functions
+├── 📁 migrations/            # Database migrations
+├── 📄 docker-compose.yml     # Container orchestration
 ├── 📄 Dockerfile.api         # API container config
 ├── 📄 Makefile               # Build automation
 ├── 📄 Cargo.toml             # Rust workspace config
