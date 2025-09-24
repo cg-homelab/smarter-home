@@ -1,2 +1,3 @@
 pub mod domain;
-pub mod entiy;
+pub mod entity;
+pub mod error;
