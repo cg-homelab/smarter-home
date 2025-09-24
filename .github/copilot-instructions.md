@@ -49,7 +49,7 @@ cargo run --bin api
 
 #### Frontend (Next.js)
 ```bash
-cd src/frontend
+cd src/services/frontend
 
 # Install dependencies (automatically done by make install-dependencies)
 npm install
@@ -69,7 +69,7 @@ npm run lint
 
 #### Desktop App (Tauri)
 ```bash
-cd src/desktop
+cd src/services/desktop
 
 # Install dependencies (automatically done by make install-dependencies)
 npm install
@@ -156,8 +156,10 @@ make start-database
 smarter-home/
 ├── src/
 │   ├── services/api/          # Rust backend API server
-│   ├── frontend/              # Next.js web application  
-│   ├── desktop/               # Tauri desktop application
+│   ├── services/              # Shared Rust libraries
+│   │   ├── api/               # Data models
+│   │   ├── frontend/          # Next.js web application
+│   │   └── desktop/           # Tauri desktop application
 │   └── lib/                   # Shared Rust libraries
 │       ├── lib-models/        # Data models
 │       └── lib-utils/         # Utility functions
@@ -169,8 +171,8 @@ smarter-home/
 
 ### Key Configuration Files
 - **Backend**: `src/services/api/Cargo.toml`, `Cargo.toml` (workspace)
-- **Frontend**: `src/frontend/package.json`, `next.config.ts`, `tailwind.config.ts`
-- **Desktop**: `src/desktop/package.json`, `vite.config.ts`, `src-tauri/tauri.conf.json`
+- **Frontend**: `src/services/frontend/package.json`, `next.config.ts`, `tailwind.config.ts`
+- **Desktop**: `src/services/desktop/package.json`, `vite.config.ts`, `src-tauri/tauri.conf.json`
 - **Database**: `migrations/0001_init.sql`, `.env.example`
 - **Docker**: `docker-compose.yml`, `Dockerfile.api`
 - **CI/CD**: `.github/workflows/run-pr-tag-gen.yml`, `.github/workflows/run-release-deploy.yml`
@@ -220,8 +222,8 @@ Copy `.env.example` to `.env` and configure:
 
 ### Important Source Files
 - **API Entry Point**: `src/services/api/src/main.rs` - Axum server setup
-- **Frontend Layout**: `src/frontend/app/layout.tsx` - Next.js root layout  
-- **Desktop Entry**: `src/desktop/src/main.tsx` - React app entry
+- **Frontend Layout**: `src/services/frontend/app/layout.tsx` - Next.js root layout  
+- **Desktop Entry**: `src/services/desktop/src/main.tsx` - React app entry
 - **Database Schema**: `migrations/0001_init.sql` - TimescaleDB table setup
 - **Shared Models**: `src/lib/lib-models/` - Common data structures
 - **Utilities**: `src/lib/lib-utils/` - Shared utility functions
@@ -263,10 +265,10 @@ The project has been modernized to use sqlx-cli instead of goose. Available comm
 
 ### Common Development Tasks
 - **New API endpoint**: Modify `src/services/api/src/routes/`
-- **Frontend UI changes**: Work in `src/frontend/app/` or `src/frontend/components/`
+- **Frontend UI changes**: Work in `src/services/frontend/app/` or `src/services/frontend/components/`
 - **Database changes**: Create new migration with `make db-mig-create`
 - **Styling**: Use TailwindCSS classes, extend in `tailwind.config.ts`
-- **Desktop features**: Modify `src/desktop/src/` React components
+- **Desktop features**: Modify `src/services/desktop/src/` React components
 - **Shared models**: Add to `src/lib/lib-models/`
 - **Utility functions**: Add to `src/lib/lib-utils/`
 
