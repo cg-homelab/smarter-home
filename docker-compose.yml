@@ -8,14 +8,10 @@ services:
     restart: unless-stopped
     ports:
       - ${BACKEND_PORT}:${BACKEND_PORT}
-    environment:
-      APP_ENV: ${APP_ENV}
-      BACKEND_PORT: ${BACKEND_PORT}
-      FRONTEND_PORT: ${FRONTEND_PORT}
-      DATABASE_URL: ${DATABASE_URL}
+    env_file:
+      - .env
     depends_on:
-      database:
-        condition: service_healthy
+      - database
     networks:
       - smarter_home
 
@@ -41,23 +37,19 @@ services:
 
   # Database
   database:
-    image: timescale/timescaledb-ha:pg17
-    container_name: smarter-home-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    container_name: surrealdb
+    env_file:
+      - .env
+    entrypoint: 
+      - /surreal 
+      - start 
+      - --user
+      - ${SURREALDB_USER}
+      - --pass
+      - ${SURREALDB_PASS}
+    image: surrealdb/surrealdb:latest
     ports:
-      - "${DB_PORT}:5432"
-    volumes:
-      - smarter_home_database_volume:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USERNAME} -d ${DB_NAME}'"]
-      interval: 5s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
+      - 8000:8000
     networks:
       - smarter_home
 

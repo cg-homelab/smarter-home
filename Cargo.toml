@@ -1,6 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["src/lib/lib-models", "src/lib/lib-utils", "src/services/api"]
+members = [
+  "src/lib/lib-models",
+  "src/lib/lib-utils",
+  "src/services/api",
+  # "src/desktop/src-tauri",
+]
 
 [workspace.dependencies]
 tokio = { version = "^1", features = ["full"] }
@@ -9,6 +14,8 @@ tracing-subscriber = { version = "^0.3", features = ["env-filter"] }
 uuid = { version = "^1", features = ["v4", "serde"] }
 chrono = { version = "^0.4", features = ["serde"] }
 serde = { version = "^1.0", features = ["derive"] }
+axum = { version = "^0.8", features = ["ws", "multipart", "macros"] }
+surrealdb = "2.3.10"
 serde_json = "^1.0"
 sqlx = { version = "^0.8", features = [
   "runtime-tokio",
