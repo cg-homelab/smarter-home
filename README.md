@@ -91,7 +91,7 @@ make start-docker
 cargo run --bin api
 
 # Terminal 2: Start Frontend
-cd src/frontend && npm run dev
+cd src/services/frontend && npm run dev
 
 # Terminal 3: Start Desktop (optional)
 make start-desktop
@@ -132,13 +132,13 @@ cargo build
 cargo test
 
 # Frontend development
-cd src/frontend
+cd src/services/frontend
 npm run dev        # Development server
 npm run build      # Production build
 npm run lint       # Code linting
 
 # Desktop development
-cd src/desktop
+cd src/services/desktop
 npm run dev        # Development mode
 npm run build      # Build desktop app
 npm run tauri dev  # Run in Tauri dev mode
@@ -149,14 +149,15 @@ npm run tauri dev  # Run in Tauri dev mode
 ```
 smarter-home/
 ├── 📁 src/
-│   ├── 📁 services/api/       # Rust backend API
-│   ├── 📁 frontend/           # Next.js web application
-│   ├── 📁 desktop/            # Tauri desktop app
-│   └── 📁 lib/                # Shared Rust libraries
-│       ├── 📁 lib-models/     # Data models
-│       └── 📁 lib-utils/      # Utility functions
-├── 📁 migrations/             # Database migrations
-├── 📄 docker-compose.yml      # Container orchestration
+│   ├── 📁 services/api/      # All Project Services
+│   │   ├── 📁 api/           # Rust backend REST API
+│   │   ├── 📁 frontend/      # Next.js web application
+│   │   └── 📁 desktop/       # Tauri desktop app
+│   └── 📁 lib/               # Shared Rust libraries
+│       ├── 📁 lib-models/    # Data models
+│       └── 📁 lib-utils/     # Utility functions
+├── 📁 migrations/            # Database migrations
+├── 📄 docker-compose.yml     # Container orchestration
 ├── 📄 Dockerfile.api         # API container config
 ├── 📄 Makefile               # Build automation
 ├── 📄 Cargo.toml             # Rust workspace config
@@ -222,7 +223,7 @@ cargo test
 
 ### Frontend Tests
 ```bash
-cd src/frontend
+cd src/services/frontend
 npm test
 ```
 
