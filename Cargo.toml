@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["src/lib/lib-models", "src/lib/lib-utils", "src/services/api"]
+members = ["src/lib/lib-models", "src/lib/lib-utils", "src/services/api", "src/services/desktop/src-tauri"]
 
 [workspace.dependencies]
 tokio = { version = "^1", features = ["full"] }
