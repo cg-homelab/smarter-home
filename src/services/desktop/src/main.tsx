@@ -1,13 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import App from "./App";
-import User from "./User";
-import Charts from "./Charts";
-import Settings from "./Settings";
-import UserLogin from "./User-Login";
+import App from "./app";
+import User from "./user";
+import Charts from "./charts";
+import Settings from "./settings";
+import UserLogin from "./user-login";
 import NavBar from "./components/navbar";
-import "./Global.css";
+import "./global.css";
 
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

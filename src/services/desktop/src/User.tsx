@@ -1,4 +1,4 @@
-import "./Global.css";
+import "./global.css";
 import NavItem from "./components/nav-item"
 import { faSignIn } from "@fortawesome/free-solid-svg-icons";
 import UserCard from "./components/user-card";
