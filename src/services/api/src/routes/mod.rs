@@ -26,6 +26,7 @@ pub fn create_router() -> axum::Router {
         .route("/power", post(power::post::post_power_metric))
         // Health check endpoint
         .route("/health", get(|| async { "healthy" }))
+        .route("/user/signup", post(auth::sign_up))
         .with_state(app_state);
 
     axum::Router::new()

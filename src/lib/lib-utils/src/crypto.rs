@@ -1,5 +1,5 @@
 use argon2::{
-    password_hash::{rand_core::OsRng, Salt, SaltString},
+    password_hash::{rand_core::OsRng, SaltString},
     Argon2, PasswordHasher, PasswordVerifier,
 };
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
