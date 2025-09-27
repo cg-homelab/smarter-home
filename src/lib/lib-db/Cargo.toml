@@ -1,0 +1,15 @@
+[package]
+name = "lib-db"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+lib-models = { path = "../lib-models" }
+sqlx = { version = "^0.8", features = [
+  "runtime-tokio",
+  "postgres",
+  "uuid",
+  "json",
+  "chrono",
+  "tls-rustls",
+] }
