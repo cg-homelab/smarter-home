@@ -1,8 +1,8 @@
+use base64::prelude::*;
 use serde::{Deserialize, Serialize};
-use surrealdb::RecordId;
+use uuid::Uuid;
 
 use crate::domain;
-use crate::entity::HOME_TABLE;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewHome {
@@ -19,23 +19,38 @@ impl NewHome {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Home {
-    pub id: RecordId,
-    name: String,
-    address: String,
+    #[serde(rename = "_id")]
+    pub id: Uuid,
+    pub name: String,
+    pub address: String,
+    pub write_token: String, // base64 encoded random token
 }
 impl Home {
     pub fn to_domain(&self) -> crate::domain::home::Home {
         domain::home::Home {
-            id: self.id.key().to_string(),
+            id: self.id,
             name: self.name.clone(),
             address: self.address.clone(),
+            write_token: self.write_token.clone(),
+        }
+    }
+
+    pub fn from_new(model: NewHome) -> Self {
+        let write_token = BASE64_URL_SAFE.encode(uuid::Uuid::new_v4().as_bytes());
+
+        Self {
+            id: Uuid::new_v4(),
+            name: model.name,
+            address: model.address,
+            write_token,
         }
     }
     pub fn from_domain(model: crate::domain::home::Home) -> Self {
         Self {
-            id: RecordId::from((HOME_TABLE, model.id)),
+            id: model.id,
             name: model.name,
             address: model.address,
+            write_token: model.write_token,
         }
     }
 }

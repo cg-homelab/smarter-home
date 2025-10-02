@@ -4,12 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# Local dependencies
 lib-models = { path = "../lib-models" }
-sqlx = { version = "^0.8", features = [
-  "runtime-tokio",
-  "postgres",
-  "uuid",
-  "json",
-  "chrono",
-  "tls-rustls",
-] }
+lib-utils = { path = "../lib-utils" }
+
+# Workspace dependencies
+serde = { workspace = true }
+sqlx = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+questdb-rs = { workspace = true }

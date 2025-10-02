@@ -1,25 +1,23 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Clone, Deserialize, Serialize)]
-pub struct NewUser {
+pub struct NewDomainUser {
     pub email: String,
     pub password: String,
-    pub name: String,
-    pub age: u8,
-    pub homes: Option<Vec<String>>,
-    pub created_at: DateTime<Utc>,
-    pub modified_at: DateTime<Utc>,
+    pub first_name: String,
+    pub last_name: String,
 }
 
-pub struct User {
-    pub id: String,
+pub struct DomainUser {
+    pub id: Uuid,
     pub email: String,
-    pub name: String,
-    pub age: u8,
+    pub first_name: String,
+    pub last_name: String,
     pub homes: Option<Vec<String>>,
     pub created_at: DateTime<Utc>,
-    pub modified_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Clone, Deserialize, Serialize)]

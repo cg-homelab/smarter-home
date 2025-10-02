@@ -1,11 +1,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use surrealdb::RecordId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PowerMetrics {
-    pub home_id: RecordId,
+    pub home_id: String,
     pub ts: DateTime<Utc>,
     pub price: f64,       //Current electricity price
     pub power: f64,       //Current wattage draw
@@ -22,7 +21,7 @@ pub struct PowerMetrics {
 impl PowerMetrics {
     pub fn from_domain(model: crate::domain::power::PowerMetrics) -> Self {
         Self {
-            home_id: RecordId::from((crate::entity::HOME_TABLE, model.home_id)),
+            home_id: model.home_id,
             ts: model.ts,
             price: model.price,
             power: model.power,
