@@ -8,17 +8,19 @@ pub mod power;
 
 #[derive(Clone)]
 pub struct AppState {
+    pub db: lib_db::Db,
     pub encoding_key: String,
 }
 
-pub fn create_router() -> axum::Router {
+pub fn create_router(db: lib_db::Db) -> axum::Router {
     let app_state = AppState {
+        db,
         encoding_key: std::env::var("AUTH_SECRET").unwrap(),
     };
 
     let autherized_routes: axum::Router = axum::Router::new()
-        .route("/home/{id}", post(home::post_home))
-        .route("/home", get(home::get_homes))
+        // .route("/home/{id}", post(home::post_home))
+        // .route("/home", get(home::get_homes))
         // Apply JWT authentication middleware to protected routes
         .layer(from_fn_with_state(app_state.clone(), auth::jwt_auth));
 
@@ -26,6 +28,7 @@ pub fn create_router() -> axum::Router {
         .route("/power", post(power::post::post_power_metric))
         // Health check endpoint
         .route("/health", get(|| async { "healthy" }))
+        .route("/user/login", post(auth::log_in))
         .route("/user/signup", post(auth::sign_up))
         .with_state(app_state);
 

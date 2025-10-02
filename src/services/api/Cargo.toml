@@ -9,8 +9,8 @@ edition = "2021"
 # Internal libraries
 lib-models = { path = "../../lib/lib-models" }
 lib-utils = { path = "../../lib/lib-utils" }
+lib-db = { path = "../../lib/lib-db" }
 # Workspace libraries
-
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true }
@@ -27,6 +27,8 @@ surrealdb = { workspace = true }
 jsonwebtoken = { workspace = true }
 #axum-extra = { version = "0.9.3", features = ["typed-header"] }
 #headers = "0.4.0"
+
+# Service specific dependencies
 tower-http = { version = "^0.6", features = ["trace", "cors", "fs"] }
 reqwest = "0.12.4"
 oauth2 = "4.4.2"

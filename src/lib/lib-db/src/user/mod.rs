@@ -1,8 +1,8 @@
+use crate::Db;
 use chrono::{DateTime, Utc};
 use lib_models::domain::user::{AuthUser, DomainUser, NewDomainUser};
 use lib_models::error::Error;
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,10 +17,10 @@ pub struct User {
     updated_at: DateTime<Utc>,
 }
 impl User {
-    pub async fn check_exists(db: &PgPool, new_user: &NewDomainUser) -> Result<bool, Error> {
+    pub async fn check_exists(db: &Db, new_user: &NewDomainUser) -> Result<bool, Error> {
         // Check if user with email already exists
         let result = sqlx::query!("SELECT id FROM users WHERE email = $1", new_user.email)
-            .fetch_all(db)
+            .fetch_all(&db.pool)
             .await?;
         if result.is_empty() {
             Ok(false)
@@ -29,7 +29,7 @@ impl User {
         }
     }
 
-    pub async fn insert(db: &PgPool, new_user: &NewDomainUser) -> Result<DomainUser, Error> {
+    pub async fn insert(db: &Db, new_user: &NewDomainUser) -> Result<DomainUser, Error> {
         // Hash the password
         let password_hash = lib_utils::crypto::hash_password(new_user.password.as_str())?;
 
@@ -45,7 +45,7 @@ impl User {
             new_user.email,
             password_hash.hash,
         )
-        .fetch_one(db)
+        .fetch_one(&db.pool)
         .await?;
 
         let _salts = sqlx::query_as!(
@@ -57,7 +57,9 @@ impl User {
             "#,
             user.id,
             password_hash.salt
-        );
+        )
+        .fetch_one(&db.pool)
+        .await?;
 
         Ok(DomainUser {
             id: user.id,
@@ -71,7 +73,7 @@ impl User {
     }
 
     pub async fn auth_user(
-        db: &PgPool,
+        db: &Db,
         auth_user: &AuthUser,
     ) -> Result<bool, lib_models::error::Error> {
         let user = sqlx::query_as!(
@@ -79,13 +81,10 @@ impl User {
             "SELECT * FROM users WHERE email = $1",
             auth_user.email
         )
-        .fetch_one(db)
+        .fetch_one(&db.pool)
         .await?;
 
-        Ok(lib_utils::crypto::verify_password(
-            auth_user.password.as_str(),
-            &user.password_hash,
-        )?)
+        lib_utils::crypto::verify_password(auth_user.password.as_str(), &user.password_hash)
     }
 }
 

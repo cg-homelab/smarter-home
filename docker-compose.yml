@@ -8,10 +8,13 @@ services:
     restart: unless-stopped
     ports:
       - ${BACKEND_PORT}:${BACKEND_PORT}
-    env_file:
-      - .env
+    environment:
+      DATABASE_URL: postgresql://${DB_USERNAME}:${DB_PASSWORD}@sm-db:${DB_PORT}/${DB_NAME}
+      BACKEND_PORT: ${BACKEND_PORT}
+      FRONTEND_PORT: ${FRONTEND_PORT}
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     networks:
       - smarter_home
 
@@ -37,21 +40,40 @@ services:
 
   # Database
   database:
-    container_name: surrealdb
-    env_file:
-      - .env
-    entrypoint: 
-      - /surreal 
-      - start 
-      - --user
-      - ${SURREALDB_USER}
-      - --pass
-      - ${SURREALDB_PASS}
-    image: surrealdb/surrealdb:latest
+    container_name: sm-db
+    image: timescale/timescaledb-ha:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - 8000:8000
+      - "${DB_PORT}:5432"
+    volumes:
+      - smarter_home_database_volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USERNAME} -d ${DB_NAME}'"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     networks:
       - smarter_home
+    # container_name: surrealdb
+    # env_file:
+    #   - .env
+    # entrypoint: 
+    #   - /surreal 
+    #   - start 
+    #   - --user
+    #   - ${SURREALDB_USER}
+    #   - --pass
+    #   - ${SURREALDB_PASS}
+    # image: surrealdb/surrealdb:latest
+    # ports:
+    #   - 8000:8000
+    # networks:
+    #   - smarter_home
 
 volumes:
   smarter_home_database_volume:

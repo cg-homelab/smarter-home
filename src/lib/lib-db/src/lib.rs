@@ -7,14 +7,12 @@ pub mod home;
 pub mod power;
 pub mod user;
 
-const MONGO_DB: &str = "smarter-home";
-
 #[derive(Clone)]
-pub struct DatabaseState {
-    pub pg: PgPool,
+pub struct Db {
+    pub pool: PgPool,
 }
-impl DatabaseState {
-    async fn init_pg(config: &config::DatabaseConfig) -> Result<PgPool, Error> {
+impl Db {
+    async fn init(config: &config::DatabaseConfig) -> Result<PgPool, Error> {
         let db_connection_str = config.pg_uri.clone();
         // set up connection pool
         Ok(PgPoolOptions::new()
@@ -27,9 +25,9 @@ impl DatabaseState {
     pub async fn new() -> Result<Self, Error> {
         let database_config = config::DatabaseConfig::new();
 
-        let pg = Self::init_pg(&database_config).await?;
+        let pg = Self::init(&database_config).await?;
 
-        Ok(Self { pg })
+        Ok(Self { pool: pg })
     }
 }
 

@@ -1,16 +1,15 @@
+use lib_models::error::Error;
 use surrealdb::{engine::remote::ws::Client, Surreal};
 use tokio::net::TcpListener;
 use tracing::Level;
 
-pub mod error;
 mod routes;
-pub mod store;
 
 use std::sync::LazyLock;
 static DB: LazyLock<Surreal<Client>> = LazyLock::new(Surreal::init);
 
 #[tokio::main]
-async fn main() -> Result<(), error::Error> {
+async fn main() -> Result<(), Error> {
     // Add logging
     tracing_subscriber::fmt()
         .with_max_level(Level::DEBUG)
@@ -23,7 +22,7 @@ async fn main() -> Result<(), error::Error> {
             .as_str();
 
     // Set up db connection
-    store::init().await?;
+    let db = lib_db::Db::new().await?;
 
     // Log db connected
     tracing::debug!("Connected to database");
@@ -32,7 +31,7 @@ async fn main() -> Result<(), error::Error> {
     let listener = TcpListener::bind(address.as_str()).await.unwrap();
 
     // Set up app with routing
-    let router = routes::create_router();
+    let router = routes::create_router(db);
 
     //Log Startup
     tracing::debug!("listening on {}", listener.local_addr().unwrap());
@@ -40,7 +39,7 @@ async fn main() -> Result<(), error::Error> {
     // Start Tcp app on port
     axum::serve(listener, router)
         .await
-        .map_err(|_| error::Error::AxumServerError)?;
+        .map_err(|_| Error::AxumServerError)?;
 
     Ok(())
 }

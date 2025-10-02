@@ -10,7 +10,7 @@ pub struct NewHome {
     address: String,
 }
 impl NewHome {
-    pub fn from_new_domain(model: crate::domain::home::NewHome) -> Self {
+    pub fn from_new_domain(model: crate::domain::home::DomainNewHome) -> Self {
         Self {
             name: model.name,
             address: model.address,
@@ -26,8 +26,8 @@ pub struct Home {
     pub write_token: String, // base64 encoded random token
 }
 impl Home {
-    pub fn to_domain(&self) -> crate::domain::home::Home {
-        domain::home::Home {
+    pub fn to_domain(&self) -> crate::domain::home::DomainHome {
+        domain::home::DomainHome {
             id: self.id,
             name: self.name.clone(),
             address: self.address.clone(),
@@ -45,7 +45,7 @@ impl Home {
             write_token,
         }
     }
-    pub fn from_domain(model: crate::domain::home::Home) -> Self {
+    pub fn from_domain(model: crate::domain::home::DomainHome) -> Self {
         Self {
             id: model.id,
             name: model.name,

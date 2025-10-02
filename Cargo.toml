@@ -3,12 +3,14 @@ resolver = "2"
 members = [
   "src/lib/lib-models",
   "src/lib/lib-utils",
+  "src/lib/lib-db",
   "src/services/api",
   "src/services/desktop/src-tauri",
 ]
 
 [workspace.dependencies]
 tokio = { version = "^1", features = ["full"] }
+features = "^0.10"
 tracing = "^0.1"
 tracing-subscriber = { version = "^0.3", features = ["env-filter"] }
 uuid = { version = "^1", features = ["v4", "serde"] }
@@ -26,5 +28,11 @@ sqlx = { version = "^0.8", features = [
   "chrono",
   "tls-rustls",
 ] }
+mongodb = { version = "3.3.0", features = [
+  "zstd-compression",
+  "snappy-compression",
+  "zlib-compression",
+] }
+questdb-rs = { version = "^5.0", features = ["chrono_timestamp"] }
 thiserror = "^2.0"
 anyhow = "^1"

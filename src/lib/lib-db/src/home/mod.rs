@@ -1,51 +1,48 @@
-use crate::DatabaseState;
-use lib_models::entity::home::{Home, NewHome};
+use crate::Db;
+use lib_models::domain::home::{DomainHome, DomainNewHome};
 use lib_models::error::Error;
+use uuid::Uuid;
 
-// async fn check_home_exists(address: &str, db: &DatabaseState) -> Result<bool, Error> {
-//     let doc = doc! { "address": address.to_string() };
-//     let count = db
-//         .mongo
-//         .database(crate::MONGO_DB)
-//         .collection::<Home>("homes")
-//         .count_documents(doc)
-//         .await?;
-//     Ok(count > 0)
-// }
-//
-// pub async fn create_home(db: DatabaseState, input: NewHome) -> Result<Home, Error> {
-//     let home = Home::from_new(input);
-//
-//     if check_home_exists(&home.address, &db).await? {
-//         return Err(Error::Conflict(format!(
-//             "Home with address {} already exists",
-//             &home.address
-//         )));
-//     }
-//
-//     db.mongo
-//         .database(crate::MONGO_DB)
-//         .collection::<Home>("homes")
-//         .insert_one(home.clone())
-//         .await?;
-//     Ok(home)
-// }
-//
-// pub async fn get_homes(db: &DatabaseState, ids: Vec<String>) -> Result<Vec<Home>, Error> {
-//     let doc = doc! { "id": { "$in": ids } };
-//
-//     let mut cursor = db
-//         .mongo
-//         .database(crate::MONGO_DB)
-//         .collection("homes")
-//         .find(doc)
-//         .await?;
-//
-//     let mut homes: Vec<Home> = Vec::new();
-//
-//     while let Some(home) =  cursor.advance().await? {
-//         ho
-//         homes.push(home);
-//     }
-//     Ok(homes)
-// }
+pub struct Home {
+    id: Uuid,
+    name: String,
+    address: String,
+    token: String, // base64 encoded random token
+}
+impl Home {
+    pub async fn check_home_exists(db: &Db, address: &str) -> Result<bool, Error> {
+        // Check if home with address already exists
+        let result = sqlx::query!("SELECT id FROM homes WHERE address = $1", address)
+            .fetch_all(&db.pool)
+            .await?;
+        if result.is_empty() {
+            Ok(false)
+        } else {
+            Ok(true)
+        }
+    }
+    pub async fn insert_home(db: &Db, new_home: &DomainNewHome) -> Result<DomainHome, Error> {
+        // Generate a random write token
+        let write_token = lib_utils::crypto::generate_base64_token();
+
+        let home = sqlx::query_as!(
+            Home,
+            r#"
+            INSERT INTO homes (name, address, token)
+            VALUES ($1, $2, $3)
+            RETURNING id, name, address, token
+            "#,
+            new_home.name,
+            new_home.address,
+            write_token,
+        )
+        .fetch_one(&db.pool)
+        .await?;
+        Ok(DomainHome {
+            id: home.id,
+            name: home.name,
+            address: home.address,
+            write_token: home.token,
+        })
+    }
+}

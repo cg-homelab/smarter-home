@@ -38,6 +38,9 @@ pub enum Error {
 
     #[error("crypto hash error")]
     CryptoHashError,
+
+    #[error("conflict: {0}")]
+    Conflict(String),
 }
 
 impl IntoResponse for Error {

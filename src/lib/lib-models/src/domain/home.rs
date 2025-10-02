@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Home {
+pub struct DomainHome {
     pub id: Uuid,
     pub name: String,
     pub address: String,
@@ -10,7 +10,7 @@ pub struct Home {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NewHome {
+pub struct DomainNewHome {
     pub name: String,
     pub address: String,
 }

@@ -2,10 +2,16 @@ use argon2::{
     password_hash::{rand_core::OsRng, SaltString},
     Argon2, PasswordHasher, PasswordVerifier,
 };
+use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use lib_models::{error::Error, HashedPassword};
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+pub fn generate_base64_token() -> String {
+    let random_bytes = uuid::Uuid::new_v4().as_bytes().to_vec();
+    BASE64_URL_SAFE_NO_PAD.encode(&random_bytes)
+}
 
 // Define a struct to represent the claims in the JWT
 #[derive(Serialize, Deserialize)]
