@@ -155,6 +155,7 @@ smarter-home/
 │   │   └── 📁 desktop/       # Tauri desktop app
 │   └── 📁 lib/               # Shared Rust libraries
 │       ├── 📁 lib-models/    # Data models
+│       ├── 📁 lib-db/        # Database models and functions
 │       └── 📁 lib-utils/     # Utility functions
 ├── 📁 migrations/            # Database migrations
 ├── 📄 docker-compose.yml     # Container orchestration

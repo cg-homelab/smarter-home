@@ -1,31 +1,41 @@
-use axum::{
-    extract::FromRef,
-    routing::{get, post},
-};
-use sqlx::PgPool;
+use axum::middleware::from_fn_with_state;
+use axum::routing::{get, post};
 use tower_http::trace::TraceLayer;
 
+pub mod auth;
+pub mod home;
 pub mod power;
 
-#[derive(Clone, FromRef)]
+#[derive(Clone)]
 pub struct AppState {
-    pub db: PgPool,
+    pub db: lib_db::Db,
+    pub encoding_key: String,
 }
 
-pub fn create_router(db: PgPool) -> axum::Router {
-    let state = AppState { db };
+pub fn create_router(db: lib_db::Db) -> axum::Router {
+    let app_state = AppState {
+        db,
+        encoding_key: std::env::var("AUTH_SECRET").unwrap(),
+    };
+
+    let autherized_routes: axum::Router = axum::Router::new()
+        .route("/home", post(home::post_home))
+        // .route("/home", get(home::get_homes))
+        // Apply JWT authentication middleware to protected routes
+        .layer(from_fn_with_state(app_state.clone(), auth::jwt_auth))
+        .with_state(app_state.clone());
+
+    let unautherized_routes: axum::Router = axum::Router::new()
+        .route("/power", post(power::post::post_power_metric))
+        // Health check endpoint
+        .route("/health", get(|| async { "healthy" }))
+        .route("/user/login", post(auth::log_in))
+        .route("/user/signup", post(auth::sign_up))
+        .with_state(app_state);
 
     axum::Router::new()
         // Health check endpoint
-        .route("/health", get(|| async { "healthy" }))
-        // Power endpoints
-        .route("/power", post(power::post::post_power_metric))
-        // TODO: User endpoints
-        .route("/user", get(|| async { "todo" }))
-        // TODO: Add Home endpoints
-        .route("/home", get(|| async { "todo" }))
-        // Add request logging to app
+        .merge(autherized_routes)
+        .merge(unautherized_routes)
         .layer(TraceLayer::new_for_http())
-        // Bind postgres connection pool to app
-        .with_state(state)
 }

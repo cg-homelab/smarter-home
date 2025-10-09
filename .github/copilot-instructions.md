@@ -162,6 +162,7 @@ smarter-home/
 │   │   └── desktop/           # Tauri desktop application
 │   └── lib/                   # Shared Rust libraries
 │       ├── lib-models/        # Data models
+│       ├── lib-db/            # Database models and functions
 │       └── lib-utils/         # Utility functions
 ├── migrations/                # Database schema migrations (SQLx)
 ├── docker-compose.yml         # Multi-container setup
@@ -224,8 +225,9 @@ Copy `.env.example` to `.env` and configure:
 - **API Entry Point**: `src/services/api/src/main.rs` - Axum server setup
 - **Frontend Layout**: `src/services/frontend/app/layout.tsx` - Next.js root layout  
 - **Desktop Entry**: `src/services/desktop/src/main.tsx` - React app entry
-- **Database Schema**: `migrations/0001_init.sql` - TimescaleDB table setup
+- **Database Schema**: `migrations/` - TimescaleDB table setup
 - **Shared Models**: `src/lib/lib-models/` - Common data structures
+- **Database Functions**: `src/lib/lib-db/` - Common data structures
 - **Utilities**: `src/lib/lib-utils/` - Shared utility functions
 
 ## Instructions for Coding Agents
@@ -266,11 +268,12 @@ The project has been modernized to use sqlx-cli instead of goose. Available comm
 ### Common Development Tasks
 - **New API endpoint**: Modify `src/services/api/src/routes/`
 - **Frontend UI changes**: Work in `src/services/frontend/app/` or `src/services/frontend/components/`
-- **Database changes**: Create new migration with `make db-mig-create`
+- **Database changes**: Create new migration `migrations/`
 - **Styling**: Use TailwindCSS classes, extend in `tailwind.config.ts`
 - **Desktop features**: Modify `src/services/desktop/src/` React components
 - **Shared models**: Add to `src/lib/lib-models/`
 - **Utility functions**: Add to `src/lib/lib-utils/`
+- **Database functions**: Add to `src/lib/lib-db/`
 
 ### Migration from Legacy Setup
 If you encounter references to older tooling:

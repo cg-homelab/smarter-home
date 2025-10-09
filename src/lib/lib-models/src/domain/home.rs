@@ -1,0 +1,16 @@
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainHome {
+    pub id: Uuid,
+    pub name: String,
+    pub address: String,
+    pub write_token: String, // base64 encoded random token
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainNewHome {
+    pub name: String,
+    pub address: String,
+}
