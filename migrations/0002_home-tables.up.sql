@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS homes (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     address VARCHAR(255) NOT NULL,
     token VARCHAR(255) NOT NULL,
