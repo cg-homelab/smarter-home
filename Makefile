@@ -28,7 +28,7 @@ install-dependencies: validate-system
 	@cd src/frontend && \
 	echo "Installing frontend dependencies..." && \
 	npm install
-	@cd src/desktop && \
+	@cd src/services/desktop && \
 	echo "Installing desktop dependencies..." && \
 	npm install
 	@echo "Installing github dependencies..." && \
