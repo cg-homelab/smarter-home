@@ -103,9 +103,9 @@ struct UserSessions {
     expires_at: DateTime<Utc>,
 }
 
-struct UserHomes {
-    user_id: Uuid,
-    home_id: Uuid,
-    role: String,
-    added_at: DateTime<Utc>,
-}
+// struct UserHomes {
+//     user_id: Uuid,
+//     home_id: Uuid,
+//     role: String,
+//     added_at: DateTime<Utc>,
+// }

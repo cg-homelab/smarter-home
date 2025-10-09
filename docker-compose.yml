@@ -12,6 +12,7 @@ services:
       DATABASE_URL: postgresql://${DB_USERNAME}:${DB_PASSWORD}@sm-db:${DB_PORT}/${DB_NAME}
       BACKEND_PORT: ${BACKEND_PORT}
       FRONTEND_PORT: ${FRONTEND_PORT}
+      AUTH_SECRET: ${AUTH_SECRET}
     depends_on:
       database:
         condition: service_healthy

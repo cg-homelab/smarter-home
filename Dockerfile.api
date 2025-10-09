@@ -11,20 +11,20 @@ RUN apk add --no-cache openssl-libs-static
 
 # Create a non-privileged user that the app will run under.
 RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid 10001 \
-    "smarterhome"
+  --disabled-password \
+  --gecos "" \
+  --home "/nonexistent" \
+  --shell "/sbin/nologin" \
+  --no-create-home \
+  --uid 10001 \
+  "smarterhome"
 
 WORKDIR /app
 
 # Copy source code
 COPY . .
 
-RUN cargo build --release
+RUN cargo build --release --bin api
 
 # Create stage for finished image
 FROM rust:alpine AS prod

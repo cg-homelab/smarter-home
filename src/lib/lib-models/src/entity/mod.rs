@@ -1,4 +1,3 @@
-pub mod home;
 pub mod person;
 pub mod power;
 pub mod timeserie;

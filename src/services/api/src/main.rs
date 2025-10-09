@@ -1,12 +1,8 @@
 use lib_models::error::Error;
-use surrealdb::{engine::remote::ws::Client, Surreal};
 use tokio::net::TcpListener;
 use tracing::Level;
 
 mod routes;
-
-use std::sync::LazyLock;
-static DB: LazyLock<Surreal<Client>> = LazyLock::new(Surreal::init);
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {

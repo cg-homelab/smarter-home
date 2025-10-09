@@ -13,4 +13,3 @@ serde = { workspace = true }
 sqlx = { workspace = true }
 chrono = { workspace = true }
 uuid = { workspace = true }
-questdb-rs = { workspace = true }

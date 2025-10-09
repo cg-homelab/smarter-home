@@ -39,7 +39,7 @@ pub async fn log_in(
             let response = serde_json::json!({
                 "message": "Internal server error"
             });
-            return (StatusCode::INTERNAL_SERVER_ERROR, Json(response));
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(response))
         }
         Ok(valid) => {
             if valid {
@@ -84,7 +84,7 @@ pub async fn sign_up(
             let response = serde_json::json!({
                 "message": "Internal server error"
             });
-            return (StatusCode::INTERNAL_SERVER_ERROR, Json(response));
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(response))
         }
         Ok(user) => {
             tracing::info!("User created successfully: {:?}", user.email);
@@ -97,6 +97,4 @@ pub async fn sign_up(
             (StatusCode::CREATED, Json(response))
         }
     }
-    // For this example, we'll just return a success message
-    // Generate a JWT for the new user
 }
