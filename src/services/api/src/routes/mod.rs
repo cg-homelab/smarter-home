@@ -18,14 +18,14 @@ pub fn create_router(db: lib_db::Db) -> axum::Router {
         encoding_key: std::env::var("AUTH_SECRET").unwrap(),
     };
 
-    let autherized_routes: axum::Router = axum::Router::new()
+    let authorized_routes: axum::Router = axum::Router::new()
         .route("/home", post(home::post_home))
         // .route("/home", get(home::get_homes))
         // Apply JWT authentication middleware to protected routes
         .layer(from_fn_with_state(app_state.clone(), auth::jwt_auth))
         .with_state(app_state.clone());
 
-    let unautherized_routes: axum::Router = axum::Router::new()
+    let unauthorized_routes: axum::Router = axum::Router::new()
         .route("/power", post(power::post::post_power_metric))
         // Health check endpoint
         .route("/health", get(|| async { "healthy" }))
@@ -35,7 +35,7 @@ pub fn create_router(db: lib_db::Db) -> axum::Router {
 
     axum::Router::new()
         // Health check endpoint
-        .merge(autherized_routes)
-        .merge(unautherized_routes)
+        .merge(authorized_routes)
+        .merge(unauthorized_routes)
         .layer(TraceLayer::new_for_http())
 }
