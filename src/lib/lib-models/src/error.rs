@@ -45,7 +45,19 @@ pub enum Error {
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
-        (StatusCode::INTERNAL_SERVER_ERROR, Json(self.to_string())).into_response()
+        let status = match &self {
+            Error::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::Db => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::DbReturnedNoRows => StatusCode::NOT_FOUND,
+            Error::DbMigrationError => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::AxumServerError => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::ModelConversionError => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::EntityNotFound => StatusCode::NOT_FOUND,
+            Error::WrongPassword => StatusCode::UNAUTHORIZED,
+            Error::CryptoHashError => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::Conflict(_) => StatusCode::CONFLICT,
+        };
+        (status, Json(self.to_string())).into_response()
     }
 }
 
