@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PowerMetrics {
-    pub home_id: String, //uuid::Uuid,
+    pub home_id: String,
     pub ts: DateTime<Utc>,
     pub price: f64,       //Current electricity price
     pub power: f64,       //Current wattage draw
@@ -19,7 +19,7 @@ pub struct PowerMetrics {
     pub currency: String,
 }
 impl PowerMetrics {
-    pub fn from_entity(model: crate::entity::power::PowerMetrics) -> Self {
+    pub fn from_domain(model: crate::domain::power::PowerMetrics) -> Self {
         Self {
             home_id: model.home_id,
             ts: model.ts,
