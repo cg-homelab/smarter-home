@@ -26,7 +26,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             NameClaimType = ClaimTypes.NameIdentifier
         };
     });
-
 builder.Services
       .AddAuthorization(options =>
       {
@@ -38,6 +37,7 @@ builder.Services
           );
       });
 
+// Register the scope authorization handler
 builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 
 var app = builder.Build();
