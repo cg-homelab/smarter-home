@@ -1,0 +1,13 @@
+{
+  "name": "api-dotnet",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "dotnet run",
+    "build": "dotnet build",
+    "start": "dotnet run"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
