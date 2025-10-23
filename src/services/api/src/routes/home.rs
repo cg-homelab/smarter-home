@@ -5,9 +5,16 @@ use lib_models::domain::home::DomainNewHome;
 use crate::routes::AppState;
 
 pub async fn post_home(
+    claims: lib_utils::crypto::Claims,
     State(state): State<AppState>,
     Json(input): Json<DomainNewHome>,
 ) -> impl IntoResponse {
+    tracing::debug!(
+        "User {} is attempting to save a new home with address {}",
+        claims.sub,
+        &input.address
+    );
+
     let home_exists = home::Home::check_home_exists(&state.db, &input.address).await;
     match home_exists {
         Ok(exists) => {

@@ -7,9 +7,17 @@ mod routes;
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     // Add logging
-    tracing_subscriber::fmt()
-        .with_max_level(Level::DEBUG)
-        .init();
+    let filter = match std::env::var("RUST_LOG") {
+        Ok(level) => match level.as_str() {
+            "trace" => Level::TRACE,
+            "debug" => Level::DEBUG,
+            "info" => Level::INFO,
+            "warn" => Level::WARN,
+            _ => Level::ERROR,
+        },
+        Err(_) => Level::ERROR,
+    };
+    tracing_subscriber::fmt().with_max_level(filter).init();
 
     // Set up server address from env var or default to 3001
     let address = "0.0.0.0:".to_string()

@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NewDomainUser {
     pub email: String,
     pub password: String,
@@ -10,6 +11,8 @@ pub struct NewDomainUser {
     pub last_name: String,
 }
 
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DomainUser {
     pub id: Uuid,
     pub email: String,
@@ -21,6 +24,7 @@ pub struct DomainUser {
 }
 
 #[derive(Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AuthUser {
     pub email: String,
     pub password: String,

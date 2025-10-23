@@ -41,6 +41,9 @@ pub enum Error {
 
     #[error("conflict: {0}")]
     Conflict(String),
+
+    #[error("Invalid Bearer token")]
+    InvalidToken,
 }
 
 impl IntoResponse for Error {
@@ -56,6 +59,7 @@ impl IntoResponse for Error {
             Error::WrongPassword => StatusCode::UNAUTHORIZED,
             Error::CryptoHashError => StatusCode::INTERNAL_SERVER_ERROR,
             Error::Conflict(_) => StatusCode::CONFLICT,
+            Error::InvalidToken => StatusCode::UNAUTHORIZED,
         };
         (status, Json(self.to_string())).into_response()
     }
