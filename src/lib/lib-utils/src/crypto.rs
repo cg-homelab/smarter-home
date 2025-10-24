@@ -14,9 +14,10 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-static KEYS: Lazy<Keys> = Lazy::new(|| {
-    let secret = std::env::var("JWT_SECRET").unwrap();
-    Keys::new(secret.as_bytes())
+static KEYS: Lazy<String> = Lazy::new(|| {
+    // let secret = std::env::var("JWT_SECRET").unwrap();
+    std::env::var("JWT_SECRET").unwrap()
+    // Keys::new(secret.as_bytes())
 });
 
 // encoding/decoding keys - set in the static `once_cell`
@@ -35,7 +36,7 @@ impl Keys {
 }
 
 // Define a struct to represent the claims in the JWT
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: String, // Subject (user ID or username)
     pub exp: usize,  // Expiration time
@@ -50,7 +51,9 @@ where
     type Rejection = Error;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let decoding_key = DecodingKey::from_secret(KEYS.as_bytes());
         // Extract the token from the authorization header
+        dbg!(parts.clone());
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
@@ -59,7 +62,7 @@ where
         // Decode the user data
         let token_data = decode::<Claims>(
             bearer.token(),
-            &KEYS.decoding,
+            &decoding_key,
             &Validation::new(Algorithm::HS256),
         )
         .map_err(|err| {
@@ -78,7 +81,6 @@ pub fn generate_base64_token() -> String {
 
 /// Function to generate a JWT
 /// # Arguments
-/// * `secret` - The secret key used to sign the JWT
 /// * `sub` - The subject (user ID or username) to include in the JWT
 /// # Returns
 /// * A JWT string
@@ -86,7 +88,7 @@ pub fn generate_base64_token() -> String {
 /// ```rust
 /// use lib_utils::crypto::{generate_jwt, validate_jwt};
 ///
-/// let token = generate_jwt("user123".to_string());
+/// let token = generate_jwt("user123".to_string(), false);
 /// assert!(!token.is_empty());
 /// ```
 pub fn generate_jwt(sub: String, indefenant: bool) -> String {
@@ -97,14 +99,24 @@ pub fn generate_jwt(sub: String, indefenant: bool) -> String {
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs() as usize
-                + 3600 // 1 hour expiration
+                + 3600 * 12 // 1 hour expiration
         }
     };
+    let encoding_key = EncodingKey::from_secret(KEYS.as_bytes());
 
     let claims = Claims { sub, exp };
+    dbg!(claims.clone());
 
-    encode(&Header::default(), &claims, &KEYS.encoding).unwrap()
+    let token = encode(&Header::new(Algorithm::HS256), &claims, &encoding_key).unwrap();
+
+    tracing::debug!("Generated JWT: {}", token);
+
+    token
 }
+
+// eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJ0aW4uZWxsZWdhcmRAZ21haWwuY29tIiwiZXhwIjoxNzYxMzUxMzQzfQ.5_SBX3Y1szdaYOgs50Kfgo-Jum1Pbywu3jEmWHpb8BE
+// eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJ0aW4uZWxsZWdhcmRAZ21haWwuY29tIiwiZXhwIjoxNzYxMzQyMDM1fQ.-apHco0PvvG6ejmiP0_1ya-YNx300pG1oHaZvVBplU
+// eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJ0aW4uZWxsZWdhcmRAZ21haWwuY29tIiwiZXhwIjoxNzYxMzQyMDM1fQ.-apHco0PvvG6ejmiP0_1ya-YNx300pG1oHaZvVBplU
 
 /// Function to validate a JWT
 /// # Arguments
@@ -118,13 +130,12 @@ pub fn generate_jwt(sub: String, indefenant: bool) -> String {
 /// ```rust
 /// use lib_utils::crypto::{generate_jwt, validate_jwt};
 ///
-/// let secret = b"my_secret";
-/// let token = generate_jwt(secret, "user123".to_string());
-/// let claims = validate_jwt(secret, &token).unwrap();
+/// let token = generate_jwt("user123".to_string(), false);
+/// let claims = validate_jwt(&token).unwrap();
 /// assert_eq!(claims.sub, "user123");
 /// ```
-pub fn validate_jwt(secret: &[u8], token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
-    let decoding_key = DecodingKey::from_secret(secret);
+pub fn validate_jwt(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
+    let decoding_key = DecodingKey::from_secret(KEYS.as_bytes());
     let validation = Validation::new(Algorithm::HS256);
 
     decode::<Claims>(token, &decoding_key, &validation).map(|data| data.claims)
