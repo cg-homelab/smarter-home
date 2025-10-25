@@ -1,0 +1,11 @@
+[project]
+name = "smarter-home-workspace"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["core"]
+
+[tool.uv.sources]
+core = { workspace = true }
+
+[tool.uv.workspace]
+members = ["apps/*", "libs/*"]

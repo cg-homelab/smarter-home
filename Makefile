@@ -36,6 +36,8 @@ install-dependencies: validate-system
 
 ## Running project
 # Start with docker
+start-api: 
+	@uv run fastapi dev apps/api/main
 start-docker:
 	@docker compose up --build
 

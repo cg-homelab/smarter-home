@@ -1,6 +1,0 @@
-{
-  "devDependencies": {
-    "@actions/github-script": "github:actions/github-script",
-    "semver": "^7.7.2"
-  }
-}
