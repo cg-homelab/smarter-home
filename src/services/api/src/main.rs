@@ -7,9 +7,17 @@ mod routes;
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     // Add logging
-    tracing_subscriber::fmt()
-        .with_max_level(Level::DEBUG)
-        .init();
+    let filter = match std::env::var("RUST_LOG") {
+        Ok(level) => match level.as_str() {
+            "trace" => Level::TRACE,
+            "debug" => Level::DEBUG,
+            "info" => Level::INFO,
+            "warn" => Level::WARN,
+            _ => Level::ERROR,
+        },
+        Err(_) => Level::ERROR,
+    };
+    tracing_subscriber::fmt().with_max_level(filter).init();
 
     // Set up server address from env var or default to 3001
     let address = "0.0.0.0:".to_string()
@@ -39,3 +47,26 @@ async fn main() -> Result<(), Error> {
 
     Ok(())
 }
+
+// #[cfg(test)]
+// mod tests {
+//
+//     #[test]
+//     fn check_token_encode() {
+//         use lib_utils::crypto::generate_jwt;
+//
+//         let token = generate_jwt("user123@test.com".to_string(), false);
+//         assert!(!token.is_empty());
+//     }
+//
+//     #[test]
+//     fn check_token_decode() {
+//         use lib_utils::crypto::{generate_jwt, validate_jwt};
+//
+//         let token = generate_jwt("user123@test.com".to_string(), false);
+//         println!("Generated Token: {}", token);
+//
+//         let claims = validate_jwt(&token).unwrap();
+//         assert_eq!(claims.sub, "user123@test.com");
+//     }
+// }
