@@ -1,5 +1,6 @@
 use crate::Db;
 use chrono::{DateTime, Utc};
+use lib_models::Role;
 use lib_models::domain::user::{AuthUser, DomainUser, NewDomainUser};
 use lib_models::error::Error;
 use serde::{Deserialize, Serialize};
@@ -66,6 +67,7 @@ impl User {
             first_name: user.first_name,
             last_name: user.last_name,
             email: user.email,
+            role: Role::User.as_str().to_string(),
             homes: None,
             created_at: user.created_at,
             updated_at: user.updated_at,
@@ -75,7 +77,7 @@ impl User {
     pub async fn auth_user(
         db: &Db,
         auth_user: &AuthUser,
-    ) -> Result<bool, lib_models::error::Error> {
+    ) -> Result<DomainUser, lib_models::error::Error> {
         let user = sqlx::query_as!(
             User,
             "SELECT * FROM users WHERE email = $1",
@@ -84,7 +86,26 @@ impl User {
         .fetch_one(&db.pool)
         .await?;
 
-        lib_utils::crypto::verify_password(auth_user.password.as_str(), &user.password_hash)
+        let return_user = DomainUser {
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            role: user.role,
+            homes: None,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+        };
+        match lib_utils::crypto::verify_password(auth_user.password.as_str(), &user.password_hash) {
+            Ok(valid) => {
+                if valid {
+                    Ok(return_user)
+                } else {
+                    Err(Error::WrongPassword)
+                }
+            }
+            Err(_) => Err(Error::InternalServerError),
+        }
     }
 }
 

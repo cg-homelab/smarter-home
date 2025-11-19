@@ -16,6 +16,7 @@ pub struct NewDomainUser {
 pub struct DomainUser {
     pub id: Uuid,
     pub email: String,
+    pub role: String,
     pub first_name: String,
     pub last_name: String,
     pub homes: Option<Vec<String>>,

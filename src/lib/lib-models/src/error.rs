@@ -36,6 +36,9 @@ pub enum Error {
     #[error("wrong password")]
     WrongPassword,
 
+    #[error("Unotherized to do this action")]
+    Unauthorized,
+
     #[error("crypto hash error")]
     CryptoHashError,
 
@@ -58,6 +61,7 @@ impl IntoResponse for Error {
             Error::EntityNotFound => StatusCode::NOT_FOUND,
             Error::WrongPassword => StatusCode::UNAUTHORIZED,
             Error::CryptoHashError => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::Unauthorized => StatusCode::UNAUTHORIZED,
             Error::Conflict(_) => StatusCode::CONFLICT,
             Error::InvalidToken => StatusCode::UNAUTHORIZED,
         };

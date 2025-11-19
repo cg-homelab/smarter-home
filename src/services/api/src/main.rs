@@ -48,25 +48,25 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn check_token_encode() {
-        use lib_utils::crypto::generate_jwt;
-
-        let token = generate_jwt("user123@test.com".to_string(), false);
-        assert!(!token.is_empty());
-    }
-
-    #[test]
-    fn check_token_decode() {
-        use lib_utils::crypto::{generate_jwt, validate_jwt};
-
-        let token = generate_jwt("user123@test.com".to_string(), false);
-        println!("Generated Token: {}", token);
-
-        let claims = validate_jwt(&token).unwrap();
-        assert_eq!(claims.sub, "user123@test.com");
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//
+//     #[test]
+//     fn check_token_encode() {
+//         use lib_utils::crypto::generate_jwt;
+//
+//         let token = generate_jwt("user123@test.com".to_string(), false);
+//         assert!(!token.is_empty());
+//     }
+//
+//     #[test]
+//     fn check_token_decode() {
+//         use lib_utils::crypto::{generate_jwt, validate_jwt};
+//
+//         let token = generate_jwt("user123@test.com".to_string(), false);
+//         println!("Generated Token: {}", token);
+//
+//         let claims = validate_jwt(&token).unwrap();
+//         assert_eq!(claims.sub, "user123@test.com");
+//     }
+// }

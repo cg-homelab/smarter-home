@@ -9,15 +9,16 @@ use axum_extra::{
 };
 use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
-use lib_models::{error::Error, HashedPassword};
+use lib_models::{error::Error, HashedPassword, Role};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
+use uuid::Uuid;
 
-static KEYS: Lazy<String> = Lazy::new(|| {
-    // let secret = std::env::var("JWT_SECRET").unwrap();
-    std::env::var("JWT_SECRET").unwrap()
-    // Keys::new(secret.as_bytes())
+static KEYS: Lazy<Keys> = Lazy::new(|| {
+    let secret = std::env::var("JWT_SECRET").unwrap();
+    // std::env::var("JWT_SECRET").unwrap()
+    Keys::new(secret.as_bytes())
 });
 
 // encoding/decoding keys - set in the static `once_cell`
@@ -38,8 +39,10 @@ impl Keys {
 // Define a struct to represent the claims in the JWT
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
-    pub sub: String, // Subject (user ID or username)
-    pub exp: usize,  // Expiration time
+    pub sub: String,      // Subject (user ID or username)
+    pub role: Role,       // User role
+    pub id: Option<Uuid>, // Optional ID
+    pub exp: usize,       // Expiration time
 }
 
 // implement FromRequestParts for Claims (the JWT struct)
@@ -51,7 +54,7 @@ where
     type Rejection = Error;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let decoding_key = DecodingKey::from_secret(KEYS.as_bytes());
+        // let decoding_key = DecodingKey::from_secret(KEYS.as_bytes());
         // Extract the token from the authorization header
         dbg!(parts.clone());
         let TypedHeader(Authorization(bearer)) = parts
@@ -62,7 +65,7 @@ where
         // Decode the user data
         let token_data = decode::<Claims>(
             bearer.token(),
-            &decoding_key,
+            &KEYS.decoding,
             &Validation::new(Algorithm::HS256),
         )
         .map_err(|err| {
@@ -87,11 +90,11 @@ pub fn generate_base64_token() -> String {
 /// # Example
 /// ```rust
 /// use lib_utils::crypto::{generate_jwt, validate_jwt};
-///
-/// let token = generate_jwt("user123".to_string(), false);
+/// let role = lib_models::Role::User;
+/// let token = generate_jwt("user123".to_string(), role, None, false);
 /// assert!(!token.is_empty());
 /// ```
-pub fn generate_jwt(sub: String, indefenant: bool) -> String {
+pub fn generate_jwt(sub: String, role: Role, id: Option<Uuid>, indefenant: bool) -> String {
     let exp = match indefenant {
         true => usize::MAX,
         false => {
@@ -102,12 +105,12 @@ pub fn generate_jwt(sub: String, indefenant: bool) -> String {
                 + 3600 * 12 // 1 hour expiration
         }
     };
-    let encoding_key = EncodingKey::from_secret(KEYS.as_bytes());
+    // let encoding_key = EncodingKey::from_secret(KEYS.as_bytes());
 
-    let claims = Claims { sub, exp };
+    let claims = Claims { sub, role, id, exp };
     dbg!(claims.clone());
 
-    let token = encode(&Header::new(Algorithm::HS256), &claims, &encoding_key).unwrap();
+    let token = encode(&Header::new(Algorithm::HS256), &claims, &KEYS.encoding).unwrap();
 
     tracing::debug!("Generated JWT: {}", token);
 
@@ -129,16 +132,16 @@ pub fn generate_jwt(sub: String, indefenant: bool) -> String {
 /// # Example
 /// ```rust
 /// use lib_utils::crypto::{generate_jwt, validate_jwt};
-///
-/// let token = generate_jwt("user123".to_string(), false);
+/// let role = lib_models::Role::User;
+/// let token = generate_jwt("user123".to_string(), role, None, false);
 /// let claims = validate_jwt(&token).unwrap();
 /// assert_eq!(claims.sub, "user123");
 /// ```
 pub fn validate_jwt(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
-    let decoding_key = DecodingKey::from_secret(KEYS.as_bytes());
+    // let decoding_key = DecodingKey::from_secret(KEYS.as_bytes());
     let validation = Validation::new(Algorithm::HS256);
 
-    decode::<Claims>(token, &decoding_key, &validation).map(|data| data.claims)
+    decode::<Claims>(token, &KEYS.decoding, &validation).map(|data| data.claims)
 }
 
 /// Hash a password using Argon2
