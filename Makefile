@@ -25,11 +25,14 @@ install-dependencies: validate-system
 	@echo "Installing dependencies..."
 	@echo "Installing database dependencies..." && \
 	cargo install sqlx-cli --no-default-features --features rustls,postgres
-	@cd src/frontend && \
+	@cd src/services/frontend && \
 	echo "Installing frontend dependencies..." && \
 	npm install
 	@cd src/services/desktop && \
 	echo "Installing desktop dependencies..." && \
+	npm install
+	@cd src/services/webapp && \
+	echo "Installing webapp dependencies..." && \
 	npm install
 	@echo "Installing github dependencies..." && \
 	npm i -D @actions/github-script@github:actions/github-script
