@@ -16,3 +16,4 @@ thiserror = { workspace = true }
 anyhow = { workspace = true }
 axum = { workspace = true }
 sqlx = { workspace = true }
+utoipa = { workspace = true }

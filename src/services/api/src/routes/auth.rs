@@ -8,6 +8,16 @@ use lib_utils::crypto;
 
 use super::AppState;
 
+#[utoipa::path(
+    post,
+    path = "/user/login",
+    tag = "auth",
+    request_body = AuthUser,
+    responses(
+        (status = 200, description = "User logged in successfully", body = serde_json::Value),
+        (status = 500, description = "Internal Server Error", body = serde_json::Value),
+    )
+)]
 pub async fn log_in(
     State(state): State<AppState>,
     Json(auth_user): Json<AuthUser>,
@@ -37,6 +47,17 @@ pub async fn log_in(
     }
 }
 
+#[utoipa::path(
+    post,
+    path = "/user/signup",
+    tag = "auth",
+    request_body = NewDomainUser,
+    responses(
+        (status = 201, description = "User signed up successfully", body = serde_json::Value),
+        (status = 409, description = "Conflict - User already exists", body = serde_json::Value),
+        (status = 500, description = "Internal Server Error", body = serde_json::Value),
+    )
+)]
 pub async fn sign_up(
     State(state): State<AppState>,
     Json(new_user): Json<NewDomainUser>,

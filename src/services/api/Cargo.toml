@@ -20,10 +20,12 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 sqlx = { workspace = true }
 axum = { workspace = true }
+utoipa = { workspace = true }
 
 # Service specific dependencies
 axum-extra = { version = "^0.10", features = ["typed-header"] }
 once_cell = "^1.21"
 tower-http = { version = "^0.6", features = ["trace", "cors", "fs"] }
 reqwest = "0.12.4"
+scalar_api_reference = { version = "0.1.0", features = ["axum"] }
 # oauth2 = "4.4.2"
