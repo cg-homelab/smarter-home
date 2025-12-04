@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 pub mod domain;
-pub mod entity;
 pub mod error;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]

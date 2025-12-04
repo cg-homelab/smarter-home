@@ -1,11 +1,12 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PowerMetrics {
-    pub home_id: String, //uuid::Uuid,
+    pub home_id: Uuid, //uuid::Uuid,
     pub ts: DateTime<Utc>,
     pub price: f64,       //Current electricity price
     pub power: f64,       //Current wattage draw
@@ -18,23 +19,4 @@ pub struct PowerMetrics {
     pub solar_since_midnight: f64,
     pub cost_since_midnight: f64,
     pub currency: String,
-}
-impl PowerMetrics {
-    pub fn from_entity(model: crate::entity::power::PowerMetrics) -> Self {
-        Self {
-            home_id: model.home_id,
-            ts: model.ts,
-            price: model.price,
-            power: model.power,
-            solar_power: model.solar_power,
-            last_meter_consumption: model.last_meter_consumption,
-            last_meter_production: model.last_meter_production,
-            last_solar_total: model.last_solar_total,
-            consumption_since_midnight: model.consumption_since_midnight,
-            production_since_midnight: model.production_since_midnight,
-            solar_since_midnight: model.solar_since_midnight,
-            cost_since_midnight: model.cost_since_midnight,
-            currency: model.currency,
-        }
-    }
 }

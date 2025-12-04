@@ -20,7 +20,7 @@ pub mod power;
     // Home
     home::post_home,
     // Power
-    // power::post::post_power_metric,
+    power::post::post_power_metric,
 ))]
 struct ApiDoc;
 
