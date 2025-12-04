@@ -29,5 +29,6 @@ sqlx = { version = "^0.8", features = [
   "chrono",
   "tls-rustls",
 ] }
+utoipa = { version = "^5.4", features = ["uuid", "chrono"] }
 thiserror = "^2.0"
 anyhow = "^1"

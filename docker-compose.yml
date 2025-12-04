@@ -13,6 +13,7 @@ services:
       BACKEND_PORT: ${BACKEND_PORT}
       FRONTEND_PORT: ${FRONTEND_PORT}
       AUTH_SECRET: ${AUTH_SECRET}
+      LOG_LEVEL: debug
     depends_on:
       database:
         condition: service_healthy
@@ -63,9 +64,9 @@ services:
     # container_name: surrealdb
     # env_file:
     #   - .env
-    # entrypoint: 
-    #   - /surreal 
-    #   - start 
+    # entrypoint:
+    #   - /surreal
+    #   - start
     #   - --user
     #   - ${SURREALDB_USER}
     #   - --pass

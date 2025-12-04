@@ -9,8 +9,9 @@ use sqlx::Error as SqlxError;
 // use surrealdb::Error as SurrealError;
 use thiserror::Error;
 use tokio::sync::mpsc::error::TrySendError;
+use utoipa::ToSchema;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, ToSchema)]
 pub enum Error {
     #[error("Internal Server Error")]
     InternalServerError,

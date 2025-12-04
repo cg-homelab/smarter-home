@@ -7,7 +7,7 @@ mod routes;
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     // Add logging
-    let filter = match std::env::var("RUST_LOG") {
+    let filter = match std::env::var("LOG_LEVEL") {
         Ok(level) => match level.as_str() {
             "trace" => Level::TRACE,
             "debug" => Level::DEBUG,

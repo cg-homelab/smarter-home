@@ -4,6 +4,18 @@ use lib_models::{domain::home::DomainNewHome, error::Error};
 
 use crate::routes::AppState;
 
+#[utoipa::path(
+    post,
+    path = "/home",
+    tag = "home",
+    request_body = DomainNewHome,
+    responses(
+        (status = 200, description = "Home saved", body = lib_models::domain::home::DomainHome),
+        (status = 401, description = "Unauthorized", body = String),
+        (status = 409, description = "Conflict", body = String),
+        (status = 500, description = "Internal Server Error", body = String),
+    )
+)]
 pub async fn post_home(
     claims: lib_utils::crypto::Claims,
     State(state): State<AppState>,
