@@ -1,15 +1,20 @@
-import { Button } from '@/components/ui/button'
 import './App.css'
-import { ModeToggle } from './components/mode-toggle'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AppLayout } from './components/layout/app-layout'
+import { Dashboard } from './pages/dashboard'
+import { About } from './pages/about'
 
 function App() {
-
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center">
-      <Button>Click me</Button>
-      <ModeToggle/>
-    </div>
-
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/about" element={<About />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 
