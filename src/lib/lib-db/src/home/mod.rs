@@ -30,7 +30,15 @@ impl Home {
         }
     }
 
-    /// Check if user is part of home
+    /// Check if a user is part of a specific home.
+    /// 
+    /// # Arguments
+    /// * `db` - Database connection
+    /// * `home_id` - The UUID of the home
+    /// * `user_id` - The UUID of the user
+    /// 
+    /// # Returns
+    /// * `Result<bool, Error>` - True if the user is part of the home, false otherwise
     pub async fn check_user_on_home(db: &Db, home_id: Uuid, user_id: Uuid) -> Result<bool, Error> {
         // Check if user is part of home
         let result = sqlx::query!(
