@@ -70,7 +70,6 @@ pub fn create_router(db: lib_db::Db) -> axum::Router {
 
     axum::Router::new()
         // Health check endpoint
-        // .merge(authorized_routes)
         .merge(base_routes)
         .merge(auth_routes)
         .merge(user_routes)
