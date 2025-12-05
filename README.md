@@ -112,6 +112,7 @@ make start-desktop
 | `make start-database` | Start only the TimescaleDB database |
 | `make start-desktop` | Start desktop app in development mode |
 | `make stop-docker` | Stop all Docker services |
+| `make dev-api` | Run api localy and not through docker |
 
 ### Database Operations
 | Command | Description |
@@ -172,6 +173,9 @@ smarter-home/
 Copy `.env.example` to `.env` and configure:
 
 ```bash
+# General settings
+LOG_LEVEL=debug
+
 # Backend settings
 BACKEND_PORT=3001
 APP_ENV=local
@@ -214,6 +218,17 @@ Services will be available at:
 - Frontend: http://localhost:3000
 - API: http://localhost:3001
 - Database: localhost:5432
+
+## 🔧 Local Development (running app services individually)
+Always ensure the database is running first:
+```bash
+make start-database
+```
+Then start services as needed:
+- **API**:
+```bash
+make dev-api
+```
 
 ## 🧪 Testing
 
