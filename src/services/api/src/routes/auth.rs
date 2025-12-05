@@ -51,7 +51,7 @@ pub async fn log_in(
 /// Registers a new user and returns a JWT token upon successful signup.
 #[utoipa::path(
     post,
-    path = "/user/signup",
+    path = "/auth/signup",
     tag = "auth",
     request_body = NewDomainUser,
     responses(
