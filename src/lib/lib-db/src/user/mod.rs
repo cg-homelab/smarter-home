@@ -149,7 +149,7 @@ impl User {
     }
 }
 
-/// UserSalts struct for storing user salt information
+/// UserSalts struct for storing user salt information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct UserSalts {
     user_id: Uuid,
