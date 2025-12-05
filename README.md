@@ -112,7 +112,7 @@ make start-desktop
 | `make start-database` | Start only the TimescaleDB database |
 | `make start-desktop` | Start desktop app in development mode |
 | `make stop-docker` | Stop all Docker services |
-| `make dev-api` | Run api localy and not through docker |
+| `make dev-api` | Run api locally and not through docker |
 
 ### Database Operations
 | Command | Description |
