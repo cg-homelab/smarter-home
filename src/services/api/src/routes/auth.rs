@@ -8,6 +8,7 @@ use lib_utils::crypto;
 
 use super::AppState;
 
+/// Authenticates a user and returns a JWT token upon successful login.
 #[utoipa::path(
     post,
     path = "/user/login",
@@ -47,6 +48,7 @@ pub async fn log_in(
     }
 }
 
+/// Registers a new user and returns a JWT token upon successful signup.
 #[utoipa::path(
     post,
     path = "/user/signup",

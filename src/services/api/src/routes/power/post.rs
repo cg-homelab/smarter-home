@@ -1,17 +1,15 @@
 use axum::extract::State;
-// use crate::routes::AppState;
 use axum::response::IntoResponse;
 use axum::Json;
-//{extract::State, response::IntoResponse, Json}
-//use lib_models::domain::power::PowerMetrics;
-// use lib_models::entity::timeserie::TimeSerieRecord;
 use lib_db::power::PowerMetric as DbPowerMetric;
 use lib_models::domain::power::PowerMetrics;
 use lib_models::error::Error;
+use lib_utils::crypto::Claims;
 use reqwest::StatusCode;
 
 use crate::routes::AppState;
 
+/// Saves a new power metric associated with a home.
 #[utoipa::path(
     post,
     path = "/power/metric",
@@ -24,7 +22,7 @@ use crate::routes::AppState;
     )
 )]
 pub async fn post_power_metric(
-    claims: lib_utils::crypto::Claims,
+    claims: Claims,
     State(state): State<AppState>,
     Json(input): Json<PowerMetrics>,
 ) -> impl IntoResponse {

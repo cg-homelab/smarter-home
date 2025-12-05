@@ -54,6 +54,10 @@ start-desktop:
 stop-docker:
 	@docker compose down
 
+# Run api without docker
+dev-api:
+	@cargo run --bin api
+
 ## Database
 # Check status of database
 db-status:

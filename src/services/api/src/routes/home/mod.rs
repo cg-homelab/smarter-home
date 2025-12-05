@@ -1,9 +1,11 @@
 use axum::{extract::State, response::IntoResponse, Json};
 use lib_db::home;
 use lib_models::{domain::home::DomainNewHome, error::Error};
+use lib_utils::crypto::Claims;
 
 use crate::routes::AppState;
 
+/// Saves a new home associated with the authenticated user.
 #[utoipa::path(
     post,
     path = "/home",
@@ -17,7 +19,7 @@ use crate::routes::AppState;
     )
 )]
 pub async fn post_home(
-    claims: lib_utils::crypto::Claims,
+    claims: Claims,
     State(state): State<AppState>,
     Json(input): Json<DomainNewHome>,
 ) -> impl IntoResponse {
@@ -69,17 +71,37 @@ pub async fn post_home(
     }
 }
 
-// pub async fn get_homes(claims: lib_utils::crypto::Claims) -> impl IntoResponse {
-//     match
-//     let res = home::Home::get_homes().await;
-//     match res {
-//         Ok(items) => {
-//             tracing::debug!("Homes retrieved");
-//             Json(items).into_response()
-//         }
-//         Err(error) => {
-//             tracing::warn!("Homes retrieve failed: {:0}", &error);
-//             error.into_response()
-//         }
-//     }
-// }
+/// Retrieves all homes associated with the authenticated user.
+#[utoipa::path(
+    get,
+    path = "/home",
+    tag = "home",
+    responses(
+        (status = 200, description = "Fetched homes successfully", body = Vec<lib_models::domain::home::DomainHome>),
+        (status = 401, description = "Unauthorized", body = String),
+        (status = 500, description = "Internal Server Error", body = String),
+    )
+    )]
+pub async fn get_homes(claims: Claims, State(state): State<AppState>) -> impl IntoResponse {
+    let user_id = match claims.id {
+        Some(user_id) => user_id,
+        None => {
+            let error = Error::Unauthorized;
+            tracing::warn!("Get homes failed: {:0}", &error);
+            return error.into_response();
+        }
+    };
+
+    let res = home::Home::get_homes(&state.db, user_id).await;
+
+    match res {
+        Ok(items) => {
+            tracing::debug!("Homes fetched");
+            Json(items).into_response()
+        }
+        Err(error) => {
+            tracing::warn!("Get homes failed: {:0}", &error);
+            error.into_response()
+        }
+    }
+}

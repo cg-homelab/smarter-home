@@ -11,17 +11,28 @@ use utoipa::OpenApi;
 pub mod auth;
 pub mod home;
 pub mod power;
+pub mod user;
 
 #[derive(OpenApi)]
-#[openapi(paths(
-    // Auth
-    auth::log_in,
-    auth::sign_up,
-    // Home
-    home::post_home,
-    // Power
-    power::post::post_power_metric,
-))]
+#[openapi(
+    info(
+        title = "Smart Home API",
+        version = "1.0.0",
+        description = "API documentation for the Smart Home API.",
+    ),
+    paths(
+        // Auth
+        auth::log_in,
+        auth::sign_up,
+        // User
+        user::get_me,
+        // Home
+        home::post_home,
+        home::get_homes,
+        // Power
+        power::post::post_power_metric,
+        power::get::get_metrics_for_period,
+    ))]
 struct ApiDoc;
 
 #[derive(Clone)]
@@ -32,28 +43,39 @@ pub struct AppState {
 pub fn create_router(db: lib_db::Db) -> axum::Router {
     let app_state = AppState { db };
 
-    // let authorized_routes: axum::Router = axum::Router::new()
-    //     .route("/home", post(home::post_home))
-    //     // .route("/home", get(home::get_homes))
-    //     // Apply JWT authentication middleware to protected routes
-    //     .layer(from_fn_with_state(app_state.clone(), auth::jwt_auth))
-    //     .with_state(app_state.clone());
-
-    let routes: axum::Router = axum::Router::new()
-        .route("/openapi.json", get(openapi_json))
-        .route("/docs", get(swagger_ui))
-        .route("/home", post(home::post_home))
-        .route("/power", post(power::post::post_power_metric))
-        // Health check endpoint
+    let base_routes: axum::Router = axum::Router::new()
         .route("/health", get(|| async { "healthy" }))
-        .route("/user/login", post(auth::log_in))
-        .route("/user/signup", post(auth::sign_up))
-        .with_state(app_state);
+        .route("/openapi.json", get(openapi_json))
+        .route("/docs", get(swagger_ui));
+
+    let auth_routes: axum::Router = axum::Router::new()
+        .route("/auth/login", post(auth::log_in))
+        .route("/auth/signup", post(auth::sign_up))
+        .with_state(app_state.clone());
+
+    let user_routes: axum::Router = axum::Router::new()
+        .route("/user/me", get(user::get_me))
+        .with_state(app_state.clone());
+
+    let power_routes: axum::Router = axum::Router::new()
+        .route("/power", post(power::post::post_power_metric))
+        .route("/power/metrics", get(power::get::get_metrics_for_period))
+        .with_state(app_state.clone());
+
+    let home_routes: axum::Router = axum::Router::new()
+        .route("/home", post(home::post_home))
+        .route("/home", get(home::get_homes))
+        // .route("/home", get(home::get_homes))
+        .with_state(app_state.clone());
 
     axum::Router::new()
         // Health check endpoint
         // .merge(authorized_routes)
-        .merge(routes)
+        .merge(base_routes)
+        .merge(auth_routes)
+        .merge(user_routes)
+        .merge(home_routes)
+        .merge(power_routes)
         .layer(TraceLayer::new_for_http())
 }
 
