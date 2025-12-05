@@ -16,7 +16,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
 static KEYS: Lazy<Keys> = Lazy::new(|| {
-    let secret = std::env::var("JWT_SECRET").unwrap();
+    let secret = std::env::var("AUTH_SECRET").unwrap();
     // std::env::var("JWT_SECRET").unwrap()
     Keys::new(secret.as_bytes())
 });
