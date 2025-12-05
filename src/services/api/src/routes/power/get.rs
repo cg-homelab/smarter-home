@@ -25,9 +25,9 @@ pub struct PowerMetricsQuery {
     path = "/power/metrics",
     tag = "power",
     params(
-        ("home_id" = Uuid, Path, description = "The ID of the home"),
-        ("start_date" = DateTime<Utc>, Path, description = "The start date for the metrics range"),
-        ("end_date" = DateTime<Utc>, Path, description = "The end date for the metrics range"),
+        ("home_id" = Uuid, Query, description = "The ID of the home"),
+        ("start_date" = DateTime<Utc>, Query, description = "The start date for the metrics range"),
+        ("end_date" = DateTime<Utc>, Query, description = "The end date for the metrics range"),
     ),
     responses(
         (status = 200, description = "Fetched power metrics successfully", body = Vec<lib_models::domain::power::PowerMetrics>),
