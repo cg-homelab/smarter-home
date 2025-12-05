@@ -18,6 +18,12 @@ pub struct User {
     updated_at: DateTime<Utc>,
 }
 impl User {
+    /// Check if a user with the given email already exists
+    /// # Arguments
+    /// * `db` - Database connection
+    /// * `new_user` - New user data
+    /// # Returns
+    /// * `Result<bool, Error>` - True if user exists, false otherwise
     pub async fn check_exists(db: &Db, new_user: &NewDomainUser) -> Result<bool, Error> {
         // Check if user with email already exists
         let result = sqlx::query!("SELECT id FROM users WHERE email = $1", new_user.email)
@@ -30,6 +36,12 @@ impl User {
         }
     }
 
+    /// Insert a new user into the database
+    /// # Arguments
+    /// * `db` - Database connection
+    /// * `new_user` - New user data
+    /// # Returns
+    /// * `Result<DomainUser, Error>` - Inserted user or error
     pub async fn insert(db: &Db, new_user: &NewDomainUser) -> Result<DomainUser, Error> {
         // Hash the password
         let password_hash = lib_utils::crypto::hash_password(new_user.password.as_str())?;
@@ -74,10 +86,38 @@ impl User {
         })
     }
 
-    pub async fn auth_user(
-        db: &Db,
-        auth_user: &AuthUser,
-    ) -> Result<DomainUser, lib_models::error::Error> {
+    /// Get a user by ID
+    /// # Arguments
+    /// * `db` - Database connection
+    /// * `id` - User ID
+    /// # Returns
+    /// * `Result<DomainUser, Error>` - Retrieved user or error
+    pub async fn get(db: &Db, id: Uuid) -> Result<DomainUser, Error> {
+        let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
+            .fetch_one(&db.pool)
+            .await?;
+
+        let return_user = DomainUser {
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            role: user.role,
+            homes: None,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+        };
+
+        Ok(return_user)
+    }
+
+    /// Authenticate a user
+    /// # Arguments
+    /// * `db` - Database connection
+    /// * `auth_user` - Authentication data
+    /// # Returns
+    /// * `Result<DomainUser, Error>` - Authenticated user or error
+    pub async fn auth_user(db: &Db, auth_user: &AuthUser) -> Result<DomainUser, Error> {
         let user = sqlx::query_as!(
             User,
             "SELECT * FROM users WHERE email = $1",
@@ -109,24 +149,9 @@ impl User {
     }
 }
 
+/// UserSalts struct for storing user salt information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct UserSalts {
     user_id: Uuid,
     salt: String,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct UserSessions {
-    session_id: Uuid,
-    user_id: Uuid,
-    token: String,
-    created_at: DateTime<Utc>,
-    expires_at: DateTime<Utc>,
-}
-
-// struct UserHomes {
-//     user_id: Uuid,
-//     home_id: Uuid,
-//     role: String,
-//     added_at: DateTime<Utc>,
-// }

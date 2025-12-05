@@ -1,0 +1,96 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n            home_id,\n            ts,\n            price,\n            power,\n            solar_power,\n            last_meter_consumption,\n            last_meter_production,\n            last_solar_total,\n            consumption_since_midnight,\n            production_since_midnight,\n            solar_since_midnight,\n            cost_since_midnight,\n            currency\n            FROM power_metrics\n            WHERE home_id = $1 AND ts >= $2 AND ts <= $3\n            ORDER BY ts ASC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "home_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "ts",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "price",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 3,
+        "name": "power",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 4,
+        "name": "solar_power",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 5,
+        "name": "last_meter_consumption",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 6,
+        "name": "last_meter_production",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 7,
+        "name": "last_solar_total",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 8,
+        "name": "consumption_since_midnight",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 9,
+        "name": "production_since_midnight",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 10,
+        "name": "solar_since_midnight",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 11,
+        "name": "cost_since_midnight",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 12,
+        "name": "currency",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2b62afb9f8925c40a5b9869733b11def0f9966941beab4a63de4f6ba5717ae8b"
+}
