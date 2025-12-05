@@ -61,7 +61,7 @@ impl PowerMetric {
             new_powermetric.cost_since_midnight,
             new_powermetric.currency,
         )
-        .fetch_one(&db.pool)
+        .execute(&db.pool)
         .await?;
 
         Ok(true)
