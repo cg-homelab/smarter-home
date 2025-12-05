@@ -31,12 +31,12 @@ impl Home {
     }
 
     /// Check if a user is part of a specific home.
-    /// 
+    ///
     /// # Arguments
     /// * `db` - Database connection
     /// * `home_id` - The UUID of the home
     /// * `user_id` - The UUID of the user
-    /// 
+    ///
     /// # Returns
     /// * `Result<bool, Error>` - True if the user is part of the home, false otherwise
     pub async fn check_user_on_home(db: &Db, home_id: Uuid, user_id: Uuid) -> Result<bool, Error> {
@@ -69,8 +69,12 @@ impl Home {
     ) -> Result<DomainHome, Error> {
         // Generate a random write token
         let id = Uuid::new_v4();
-        let write_token =
-            lib_utils::crypto::generate_jwt(id.to_string(), lib_models::Role::Home, None, true);
+        let write_token = lib_utils::crypto::generate_jwt(
+            new_home.address.clone(),
+            lib_models::Role::Home,
+            Some(id),
+            true,
+        );
 
         let home = sqlx::query_as!(
             Home,
