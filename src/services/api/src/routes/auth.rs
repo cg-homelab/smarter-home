@@ -11,7 +11,7 @@ use super::AppState;
 /// Authenticates a user and returns a JWT token upon successful login.
 #[utoipa::path(
     post,
-    path = "/user/login",
+    path = "/auth/login",
     tag = "auth",
     request_body = AuthUser,
     responses(
