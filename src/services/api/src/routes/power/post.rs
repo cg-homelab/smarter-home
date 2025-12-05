@@ -12,7 +12,7 @@ use crate::routes::AppState;
 /// Saves a new power metric associated with a home.
 #[utoipa::path(
     post,
-    path = "/power/metric",
+    path = "/power",
     tag = "power",
     request_body = PowerMetrics,
     responses(
