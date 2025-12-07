@@ -1,3 +1,5 @@
+/// Library for database interactions using SQLx and PostgreSQL
+/// This library contains database connection management, configuration, and modules for different entities.
 use lib_models::error::Error;
 use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::time::Duration;
@@ -7,11 +9,19 @@ pub mod home;
 pub mod power;
 pub mod user;
 
+/// Db struct representing the database connection pool
+/// # Fields
+/// * `pool` - PostgreSQL connection pool
 #[derive(Clone)]
 pub struct Db {
     pub pool: PgPool,
 }
 impl Db {
+    // Initialize the database connection pool and run migrations
+    // # Arguments
+    // * `config` - Database configuration
+    // # Returns
+    // * `Result<PgPool, Error>` - PostgreSQL connection pool or error
     async fn init(config: &config::DatabaseConfig) -> Result<PgPool, Error> {
         let db_connection_str = config.pg_uri.clone();
         // set up connection pool
@@ -29,6 +39,9 @@ impl Db {
         Ok(pool)
     }
 
+    /// Create a new Db instance
+    /// # Returns
+    /// * `Result<Db, Error>` - Db instance or error
     pub async fn new() -> Result<Self, Error> {
         let database_config = config::DatabaseConfig::new();
 

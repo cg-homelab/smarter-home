@@ -1,5 +1,11 @@
 use std::time::Duration;
 
+/// Database configuration struct
+/// # Fields
+/// * `pg_uri` - PostgreSQL connection URI
+/// * `connection_timeout` - Connection timeout duration
+/// * `min_pool_size` - Minimum pool size
+/// * `max_pool_size` - Maximum pool size
 pub struct DatabaseConfig {
     pub pg_uri: String,
     pub connection_timeout: Option<Duration>,
@@ -8,6 +14,7 @@ pub struct DatabaseConfig {
 }
 
 impl DatabaseConfig {
+    /// Create a new DatabaseConfig from environment variables
     pub fn new() -> Self {
         let pg_uri: String = std::env::var("DATABASE_URL")
             .expect("Failed to load `POSTGRES_URI` environment variable.");

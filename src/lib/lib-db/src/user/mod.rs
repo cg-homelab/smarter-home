@@ -6,6 +6,16 @@ use lib_models::error::Error;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+/// User struct representing a user in the database
+/// # Fields
+/// * `id` - User ID
+/// * `first_name` - First name
+/// * `last_name` - Last name
+/// * `email` - Email
+/// * `password_hash` - Hashed password
+/// * `role` - User role
+/// * `created_at` - Creation timestamp
+/// * `updated_at` - Update timestamp
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     id: Uuid,
