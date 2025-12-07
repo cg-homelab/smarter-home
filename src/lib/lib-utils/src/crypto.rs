@@ -17,8 +17,14 @@ use uuid::Uuid;
 
 /// Static KEYS instance to hold encoding and decoding keys
 static KEYS: Lazy<Keys> = Lazy::new(|| {
-    let secret = std::env::var("AUTH_SECRET").unwrap_or("some_default_secret".to_string());
-    // std::env::var("JWT_SECRET").unwrap()
+    let secret = match std::env::var("AUTH_SECRET") {
+        Ok(val) => val,
+        Err(_) => {
+            tracing::warn!("AUTH_SECRET not set, using default secret. This is not recommended for production!");
+            "some_default_secret".to_string()
+        }
+    };
+
     Keys::new(secret.as_bytes())
 });
 
@@ -155,11 +161,8 @@ pub fn generate_jwt(sub: String, role: Role, id: Option<Uuid>, indefenant: bool)
     let claims = Claims { sub, role, id, exp };
     dbg!(claims.clone());
 
-    let token = encode(&Header::new(Algorithm::HS256), &claims, &KEYS.encoding).unwrap();
-
-    tracing::debug!("Generated JWT: {}", token);
-
-    token
+    encode(&Header::new(Algorithm::HS256), &claims, &KEYS.encoding)
+        .unwrap_or("failed_to_generate_token".to_string())
 }
 
 /// Function to validate a JWT
