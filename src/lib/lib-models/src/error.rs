@@ -11,6 +11,20 @@ use thiserror::Error;
 use tokio::sync::mpsc::error::TrySendError;
 use utoipa::ToSchema;
 
+/// Custom error type for the application
+/// # Variants
+/// * `InternalServerError` - Internal server error
+/// * `Db` - Database error
+/// * `DbReturnedNoRows` - Database returned no rows
+/// * `DbMigrationError` - Database migration error
+/// * `AxumServerError` - Axum server error
+/// * `ModelConversionError` - Model conversion error
+/// * `EntityNotFound` - Entity not found
+/// * `WrongPassword` - Wrong password
+/// * `Unauthorized` - Unauthorized action
+/// * `CryptoHashError` - Crypto hash error
+/// * `Conflict` - Conflict error with message
+/// * `InvalidToken` - Invalid bearer token
 #[derive(Error, Debug, ToSchema)]
 pub enum Error {
     #[error("Internal Server Error")]
@@ -49,8 +63,11 @@ pub enum Error {
     #[error("Invalid Bearer token")]
     InvalidToken,
 }
-
+/// Implement IntoResponse for Error to convert it into an HTTP response
 impl IntoResponse for Error {
+    /// Convert the Error into an HTTP response
+    /// # Returns
+    /// * `Response` - HTTP response with status code and error message
     fn into_response(self) -> Response {
         let status = match &self {
             Error::InternalServerError => StatusCode::INTERNAL_SERVER_ERROR,
@@ -85,6 +102,7 @@ impl IntoResponse for Error {
 // }
 
 impl From<SqlxError> for Error {
+    /// Convert a SqlxError into a custom Error
     fn from(error: SqlxError) -> Self {
         eprintln!("{error}");
         match error {
@@ -100,6 +118,7 @@ impl From<SqlxError> for Error {
 //     }
 // }
 impl<T> From<TrySendError<T>> for Error {
+    /// Convert a TrySendError into a custom Error
     fn from(error: TrySendError<T>) -> Self {
         eprintln!("{error}");
         Self::InternalServerError

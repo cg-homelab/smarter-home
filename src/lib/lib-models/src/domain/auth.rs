@@ -1,20 +1,32 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-// the response that we pass back to HTTP client once successfully authorised
+/// Struct representing the authentication response body
+/// # Fields
+/// * `message` - Message
+/// * `access_token` - Access token
+/// * `token_type` - Token type
+/// # Methods
+/// * `new` - Creates a new AuthBody
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthBody {
+    message: String,
     access_token: String,
     token_type: String,
-    header_value: String,
 }
 impl AuthBody {
-    pub fn new(access_token: String) -> Self {
+    /// Creates a new AuthBody
+    /// # Arguments
+    /// * `access_token` - Access token
+    /// * `message` - Message
+    /// # Returns
+    /// * `AuthBody` - New AuthBody
+    pub fn new(access_token: String, message: String) -> Self {
         Self {
+            message,
             access_token: access_token.clone(),
             token_type: "Bearer".to_string(),
-            header_value: format!("Bearer {}", access_token),
         }
     }
 }
