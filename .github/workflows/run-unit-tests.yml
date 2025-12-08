@@ -1,0 +1,72 @@
+on:
+  pull_request:
+    branches:
+    - main
+env:
+  CARGO_TERM_COLOR: always
+
+
+jobs:
+  build-and-test-rust:
+    name: Unit test rust
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write # only required if `comment: true` was enabled
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: setup toolchain
+        uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: nightly
+          components: clippy
+
+      - name: cargo test
+        id: cargo-test
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p test-results
+          # Install junit converter
+          cargo install cargo2junit
+          
+          # Run unit test and pipe into json file
+          RUSTC_BOOTSTRAP=1 cargo test -- -Z unstable-options --format json --report-time | cargo2junit > ./test-results/results.xml 
+
+          # Pipe jsons result through json to junit tool
+          # cat results.json | cargo2junit > results.xml
+          
+          # Move test results to designated folder
+          # mkdir -p test-results
+          # mv results.xml ./test-results/results.xml
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@main
+        if: always() # always run even if the previous step fails
+        with:
+          check_name: Test Report Rust
+          include_passed: true
+          fail_on_failure: true
+          require_tests: true
+          comment: true
+          detailed_summary: true
+          report_paths: '**/test-results/*.xml'
+
+      - name: clippy
+        id: cargo-clippy
+        run: bash ./workflow-helpers/clippy-helper.sh
+      # - name: Write result to pr
+      #   uses: actions/github-script@v7
+      #   with:
+      #     github-token: ${{secrets.GITHUB_TOKEN}}
+      #     script: |
+      #       github.rest.issues.createComment({
+      #         issue_number: context.issue.number,
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         body: '## Test result rust: \n \n ### Unit tests:\n \n' + steps.cargo-test.outputs.TESTRS + ' \n \n ### Clippy: \n \n' + steps.cargo-clippy.outputs.CLIPPY 
+      #       })
+

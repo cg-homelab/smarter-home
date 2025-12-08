@@ -15,19 +15,34 @@ use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
+/// Static KEYS instance to hold encoding and decoding keys
 static KEYS: Lazy<Keys> = Lazy::new(|| {
-    let secret = std::env::var("AUTH_SECRET").unwrap();
-    // std::env::var("JWT_SECRET").unwrap()
+    let secret = match std::env::var("AUTH_SECRET") {
+        Ok(val) => val,
+        Err(_) => {
+            tracing::warn!("AUTH_SECRET not set, using default secret. This is not recommended for production!");
+            "some_default_secret".to_string()
+        }
+    };
+
     Keys::new(secret.as_bytes())
 });
 
-// encoding/decoding keys - set in the static `once_cell`
+/// Struct to hold encoding and decoding keys
+/// # Fields
+/// * `encoding` - Encoding key
+/// * `decoding` - Decoding key
 struct Keys {
     pub encoding: EncodingKey,
     pub decoding: DecodingKey,
 }
 
 impl Keys {
+    /// Create a new Keys instance
+    /// # Arguments
+    /// * `secret` - Secret key as byte slice
+    /// # Returns
+    /// * `Keys` - New Keys instance
     fn new(secret: &[u8]) -> Self {
         Self {
             encoding: EncodingKey::from_secret(secret),
@@ -36,7 +51,17 @@ impl Keys {
     }
 }
 
-// Define a struct to represent the claims in the JWT
+/// Struct representing JWT claims
+/// # Fields
+/// * `sub` - Subject (username or unique identifier)
+/// * `role` - User role
+/// * `id` - Optional ID
+/// * `exp` - Expiration time
+/// # Derives
+/// * `Debug` - For debugging
+/// * `Clone` - For cloning
+/// * `Serialize` - For serialization
+/// * `Deserialize` - For deserialization
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: String,      // Subject (user ID or username)
@@ -53,6 +78,23 @@ where
 {
     type Rejection = Error;
 
+    /// Extract Claims from request parts
+    /// # Arguments
+    /// * `parts` - Request parts
+    /// * `_state` - State
+    /// # Returns
+    /// * `Result<Self, Self::Rejection>` - Claims or error
+    /// # Errors
+    /// * `Error::InvalidToken` - If the token is invalid
+    /// # Example
+    /// ```rust
+    /// use axum::{extract::FromRequestParts, http::request::Parts};
+    /// use lib_utils::crypto::Claims;
+    /// async fn example(parts: &mut Parts) -> Result<Claims, lib_models::error::Error> {
+    ///   let claims = Claims::from_request_parts(parts, &()).await?;
+    ///   Ok(claims)
+    ///   }
+    /// ```
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         // let decoding_key = DecodingKey::from_secret(KEYS.as_bytes());
         // Extract the token from the authorization header
@@ -77,6 +119,15 @@ where
     }
 }
 
+/// Function to generate a base64 encoded random token
+/// # Returns
+/// * A base64 encoded random token string
+/// # Example
+/// ```rust
+/// use lib_utils::crypto::generate_base64_token;
+/// let token = generate_base64_token();
+/// assert!(!token.is_empty());
+/// ```
 pub fn generate_base64_token() -> String {
     let random_bytes = uuid::Uuid::new_v4().as_bytes().to_vec();
     BASE64_URL_SAFE_NO_PAD.encode(&random_bytes)
@@ -110,16 +161,9 @@ pub fn generate_jwt(sub: String, role: Role, id: Option<Uuid>, indefenant: bool)
     let claims = Claims { sub, role, id, exp };
     dbg!(claims.clone());
 
-    let token = encode(&Header::new(Algorithm::HS256), &claims, &KEYS.encoding).unwrap();
-
-    tracing::debug!("Generated JWT: {}", token);
-
-    token
+    encode(&Header::new(Algorithm::HS256), &claims, &KEYS.encoding)
+        .unwrap_or("failed_to_generate_token".to_string())
 }
-
-// eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJ0aW4uZWxsZWdhcmRAZ21haWwuY29tIiwiZXhwIjoxNzYxMzUxMzQzfQ.5_SBX3Y1szdaYOgs50Kfgo-Jum1Pbywu3jEmWHpb8BE
-// eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJ0aW4uZWxsZWdhcmRAZ21haWwuY29tIiwiZXhwIjoxNzYxMzQyMDM1fQ.-apHco0PvvG6ejmiP0_1ya-YNx300pG1oHaZvVBplU
-// eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYXJ0aW4uZWxsZWdhcmRAZ21haWwuY29tIiwiZXhwIjoxNzYxMzQyMDM1fQ.-apHco0PvvG6ejmiP0_1ya-YNx300pG1oHaZvVBplU
 
 /// Function to validate a JWT
 /// # Arguments
@@ -151,6 +195,14 @@ pub fn validate_jwt(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> 
 /// * `Ok(HashedPassword)` containing the hashed password and salt, or an `Error` if hashing fails
 /// # Errors
 /// * `Error::CryptoHashError` if there was an error during hashing
+/// # Example
+/// ```rust
+/// use lib_utils::crypto::hash_password;
+/// let password = "my_secure_password";
+/// let hashed = hash_password(password).unwrap();
+/// assert!(!hashed.hash.is_empty());
+/// assert!(!hashed.salt.is_empty());
+/// ```
 pub fn hash_password(password: &str) -> Result<HashedPassword, Error> {
     let salt_str = SaltString::generate(&mut OsRng);
     let salt = salt_str.as_salt();

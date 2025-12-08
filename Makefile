@@ -23,8 +23,9 @@ validate-system:
 
 install-dependencies: validate-system
 	@echo "Installing dependencies..."
-	@echo "Installing database dependencies..." && \
-	cargo install sqlx-cli --no-default-features --features rustls,postgres
+	# TODO: Have been some problems related to this.
+	# @echo "Installing database dependencies..." && \
+	# cargo install sqlx-cli --no-default-features --features rustls,postgres
 	@cd src/services/frontend && \
 	echo "Installing frontend dependencies..." && \
 	npm install

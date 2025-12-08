@@ -1,9 +1,9 @@
 use axum::extract::State;
-use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
+use lib_models::domain::auth::AuthBody;
 use lib_models::domain::user::{AuthUser, NewDomainUser};
-use lib_models::Role;
+use lib_models::{error::Error, Role};
 use lib_utils::crypto;
 
 use super::AppState;
@@ -15,8 +15,8 @@ use super::AppState;
     tag = "auth",
     request_body = AuthUser,
     responses(
-        (status = 200, description = "User logged in successfully", body = serde_json::Value),
-        (status = 500, description = "Internal Server Error", body = serde_json::Value),
+        (status = 200, description = "User logged in successfully", body = AuthBody),
+        (status = 500, description = "Internal Server Error", body = String),
     )
 )]
 pub async fn log_in(
@@ -26,11 +26,8 @@ pub async fn log_in(
     let user_result = lib_db::user::User::auth_user(&state.db, &auth_user).await;
     match user_result {
         Err(e) => {
-            tracing::error!("Error authenticating user: {:?}", e);
-            let response = serde_json::json!({
-                "message": "Internal server error"
-            });
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(response))
+            tracing::debug!("Error authenticating user: {:?}", e);
+            Err(e.into_response())
         }
         Ok(valid_user) => {
             let token = crypto::generate_jwt(
@@ -39,11 +36,8 @@ pub async fn log_in(
                 Some(valid_user.id),
                 false,
             );
-            let response = serde_json::json!({
-                "message": "User signed in successfully",
-                "token": token,
-            });
-            (StatusCode::OK, Json(response))
+            let response = AuthBody::new(token, "User signed in successfully".to_string());
+            Ok(Json(response).into_response())
         }
     }
 }
@@ -55,9 +49,9 @@ pub async fn log_in(
     tag = "auth",
     request_body = NewDomainUser,
     responses(
-        (status = 201, description = "User signed up successfully", body = serde_json::Value),
-        (status = 409, description = "Conflict - User already exists", body = serde_json::Value),
-        (status = 500, description = "Internal Server Error", body = serde_json::Value),
+        (status = 200, description = "User signed up successfully", body = AuthBody),
+        (status = 409, description = "Conflict - User already exists", body = String),
+        (status = 500, description = "Internal Server Error", body = String),
     )
 )]
 pub async fn sign_up(
@@ -68,32 +62,25 @@ pub async fn sign_up(
 
     if let Ok(exists) = user_exists {
         if exists {
-            let response = serde_json::json!({
-                "message": "User with this email already exists"
-            });
-            return (StatusCode::CONFLICT, Json(response));
+            return Err(
+                Error::Conflict("User with this email already exists".to_string()).into_response(),
+            );
         }
     }
 
     let created_user = lib_db::user::User::insert(&state.db, &new_user).await;
 
     match created_user {
-        Err(e) => {
-            tracing::error!("Error creating user: {:?}", e);
-            let response = serde_json::json!({
-                "message": "Internal server error"
-            });
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(response))
-        }
+        Err(e) => Err(e.into_response()),
         Ok(user) => {
-            tracing::info!("User created successfully: {:?}", user.email);
+            tracing::debug!("User created successfully: {:?}", user.email);
 
             let token = crypto::generate_jwt(user.email.clone(), Role::User, Some(user.id), false);
-            let response = serde_json::json!({
-                "message": "User signed up successfully",
-                "token": token,
-            });
-            (StatusCode::CREATED, Json(response))
+            Ok(Json(AuthBody::new(
+                token,
+                "User signed up successfully".to_string(),
+            ))
+            .into_response())
         }
     }
 }

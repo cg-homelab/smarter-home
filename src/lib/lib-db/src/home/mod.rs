@@ -1,8 +1,17 @@
 use crate::Db;
 use lib_models::domain::home::{DomainHome, DomainNewHome};
 use lib_models::error::Error;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+/// Home struct representing a home in the database
+/// # Fields
+/// * `id` - Home ID
+/// * `name` - Home name
+/// * `address` - Home address
+/// * `token` - Base64 encoded random token
+/// * `tibber_token` - Optional Tibber token
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Home {
     id: Uuid,
     name: String,

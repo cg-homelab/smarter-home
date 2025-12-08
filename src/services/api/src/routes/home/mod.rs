@@ -52,7 +52,7 @@ pub async fn post_home(
         Some(user_id) => user_id,
         None => {
             let error = Error::Unauthorized;
-            tracing::warn!("Home save failed: {:0}", &error);
+            tracing::debug!("Home save failed: {:0}", &error);
             return error.into_response();
         }
     };
@@ -87,7 +87,7 @@ pub async fn get_homes(claims: Claims, State(state): State<AppState>) -> impl In
         Some(user_id) => user_id,
         None => {
             let error = Error::Unauthorized;
-            tracing::warn!("Get homes failed: {:0}", &error);
+            tracing::debug!("Get homes failed: {:0}", &error);
             return error.into_response();
         }
     };

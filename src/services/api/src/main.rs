@@ -13,7 +13,7 @@ async fn main() -> Result<(), Error> {
             "debug" => Level::DEBUG,
             "info" => Level::INFO,
             "warn" => Level::WARN,
-            _ => Level::ERROR,
+            _ => Level::WARN,
         },
         Err(_) => Level::ERROR,
     };
@@ -29,7 +29,7 @@ async fn main() -> Result<(), Error> {
     let db = lib_db::Db::new().await?;
 
     // Log db connected
-    tracing::debug!("Connected to database");
+    tracing::info!("Connected to database");
 
     // Create tcp listener
     let listener = TcpListener::bind(address.as_str()).await.unwrap();
@@ -38,7 +38,7 @@ async fn main() -> Result<(), Error> {
     let router = routes::create_router(db);
 
     //Log Startup
-    tracing::debug!("listening on {}", listener.local_addr().unwrap());
+    tracing::info!("listening on {}", listener.local_addr().unwrap());
 
     // Start Tcp app on port
     axum::serve(listener, router)

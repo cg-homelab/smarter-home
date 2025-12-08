@@ -3,6 +3,21 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+/// PowerMetrics struct representing power metrics in the domain layer
+/// # Fields
+/// * `home_id` - Home ID
+/// * `ts` - Timestamp
+/// * `price` - Current electricity price
+/// * `power` - Current wattage draw
+/// * `solar_power` - Current wattage production
+/// * `last_meter_consumption` - Last meter consumption
+/// * `last_meter_production` - Last meter production
+/// * `last_solar_total` - Last solar total
+/// * `consumption_since_midnight` - Consumption since midnight
+/// * `production_since_midnight` - Production since midnight
+/// * `solar_since_midnight` - Solar since midnight
+/// * `cost_since_midnight` - Cost since midnight
+/// * `currency` - Currency
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PowerMetrics {
