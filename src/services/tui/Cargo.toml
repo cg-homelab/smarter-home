@@ -11,12 +11,15 @@ edition = "2024"
 lib-models = { path = "../../lib/lib-models" }
 lib-utils = { path = "../../lib/lib-utils" }
 # Dependencies inherited from the workspace
+serde = { workspace = true }
+serde_json = { workspace = true }
 
 # Dependencies specific to this crate
-crossterm = "0.28.1"
-ratatui = "0.29.0"
-color-eyre = "0.6.3"
-
+crossterm = "^0.29"
+ratatui = "^0.29"
+color-eyre = "^0.6"
+reqwest = { version = "^0.12", features = ["json", "blocking"] }
+once_cell = "^1.21"
 # Read the optimization guideline for more details: https://ratatui.rs/recipes/apps/release-your-app/#optimizations
 [profile.release]
 codegen-units = 1
