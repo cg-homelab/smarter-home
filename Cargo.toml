@@ -5,6 +5,7 @@ members = [
   "src/lib/lib-utils",
   "src/lib/lib-db",
   "src/services/api",
+  "src/services/tui",
   # "src/services/desktop/src-tauri",
 ]
 
