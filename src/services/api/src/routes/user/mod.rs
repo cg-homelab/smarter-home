@@ -35,4 +35,3 @@ pub async fn get_me(claims: Claims, State(state): State<AppState>) -> impl IntoR
         }
     }
 }
-

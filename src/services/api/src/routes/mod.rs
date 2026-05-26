@@ -5,6 +5,7 @@ use axum::{
 };
 use scalar_api_reference::scalar_html;
 use serde_json::json;
+use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use utoipa::OpenApi;
 
@@ -68,6 +69,11 @@ pub fn create_router(db: lib_db::Db) -> axum::Router {
         // .route("/home", get(home::get_homes))
         .with_state(app_state.clone());
 
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any);
+
     axum::Router::new()
         // Health check endpoint
         .merge(base_routes)
@@ -75,6 +81,7 @@ pub fn create_router(db: lib_db::Db) -> axum::Router {
         .merge(user_routes)
         .merge(home_routes)
         .merge(power_routes)
+        .layer(cors)
         .layer(TraceLayer::new_for_http())
 }
 
