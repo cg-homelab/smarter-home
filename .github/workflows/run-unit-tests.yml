@@ -1,10 +1,9 @@
 on:
   pull_request:
     branches:
-    - main
+      - main
 env:
   CARGO_TERM_COLOR: always
-
 
 jobs:
   build-and-test-rust:
@@ -32,13 +31,13 @@ jobs:
           mkdir -p test-results
           # Install junit converter
           cargo install cargo2junit
-          
+
           # Run unit test and pipe into json file
           RUSTC_BOOTSTRAP=1 cargo test -- -Z unstable-options --format json --report-time | cargo2junit > ./test-results/results.xml 
 
           # Pipe jsons result through json to junit tool
           # cat results.json | cargo2junit > results.xml
-          
+
           # Move test results to designated folder
           # mkdir -p test-results
           # mv results.xml ./test-results/results.xml
@@ -53,11 +52,30 @@ jobs:
           require_tests: true
           comment: true
           detailed_summary: true
-          report_paths: '**/test-results/*.xml'
+          report_paths: "**/test-results/*.xml"
 
       - name: clippy
         id: cargo-clippy
         run: bash ./workflow-helpers/clippy-helper.sh
+
+  lint-webapp:
+    name: Lint webapp
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        working-directory: src/services/webapp
+        run: npm install
+
+      - name: Run lint
+        working-directory: src/services/webapp
+        run: npm run lint
       # - name: Write result to pr
       #   uses: actions/github-script@v7
       #   with:
@@ -67,6 +85,5 @@ jobs:
       #         issue_number: context.issue.number,
       #         owner: context.repo.owner,
       #         repo: context.repo.repo,
-      #         body: '## Test result rust: \n \n ### Unit tests:\n \n' + steps.cargo-test.outputs.TESTRS + ' \n \n ### Clippy: \n \n' + steps.cargo-clippy.outputs.CLIPPY 
+      #         body: '## Test result rust: \n \n ### Unit tests:\n \n' + steps.cargo-test.outputs.TESTRS + ' \n \n ### Clippy: \n \n' + steps.cargo-clippy.outputs.CLIPPY
       #       })
-

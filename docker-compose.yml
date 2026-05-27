@@ -1,6 +1,7 @@
 services:
   # Backend Application
   backend:
+    container_name: backend
     build:
       context: ./
       dockerfile: Dockerfile.api
@@ -20,25 +21,20 @@ services:
     networks:
       - smarter_home
 
-  # Frontend Application
-  # frontend:
-  #   build:
-  #     context: ./src/frontend/
-  #     dockerfile: Dockerfile
-  #     #target: frontend
-  #   restart: unless-stopped
-  #   environment:
-  #     BACKEND_PORT: ${BACKEND_PORT}
-  #     NEXTAUTH_URL: ${NEXTAUTH_URL}
-  #     AUTH_SECRET: ${AUTH_SECRET}
-  #     AUTH_GITHUB_ID: ${AUTH_GITHUB_ID}
-  #     AUTH_GITHUB_SECRET: ${AUTH_GITHUB_SECRET}
-  #   depends_on:
-  #     - backend
-  #   ports:
-  #     - ${FRONTEND_PORT}:${FRONTEND_PORT}
-  #   networks:
-  #     - smarter_home
+  # Webapp (Vite/React SPA)
+  webapp:
+    build:
+      context: ./
+      dockerfile: Dockerfile.webapp
+    restart: unless-stopped
+    ports:
+      - ${FRONTEND_PORT}:80
+    environment:
+      - VITE_API_URL:http://backend:${BACKEND_PORT}
+    depends_on:
+      - backend
+    networks:
+      - smarter_home
 
   # Database
   database:
