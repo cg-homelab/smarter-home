@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button";
 function generateBreadcrumbs(pathname: string) {
   const paths = pathname.split("/").filter(Boolean);
 
-  const breadcrumbs = [{ label: "Dashboard", path: "/" }];
+  const breadcrumbs = [{ label: "Dashboard", path: "/dashboard" }];
 
   let currentPath = "";
   paths.forEach((segment) => {
@@ -58,9 +58,9 @@ export function AppLayout() {
                 <NavigationMenuItem>
                   <NavigationMenuLink
                     asChild
-                    active={location.pathname === "/"}
+                    active={location.pathname === "/dashboard"}
                   >
-                    <Link to="/">Dashboard</Link>
+                    <Link to="/dashboard">Dashboard</Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>

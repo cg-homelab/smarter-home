@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/auth-context";
 import { AppLayout } from "./components/layout/app-layout";
 import { ProtectedRoute } from "./components/auth/protected-route";
+import { Landing } from "./pages/landing";
 import { Dashboard } from "./pages/dashboard";
 import { About } from "./pages/about";
 import { Homes } from "./pages/homes";
@@ -14,7 +15,8 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public auth routes */}
+          {/* Public routes */}
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
@@ -26,7 +28,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/homes" element={<Homes />} />
             <Route path="/about" element={<About />} />
           </Route>
