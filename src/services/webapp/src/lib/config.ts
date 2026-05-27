@@ -14,6 +14,7 @@ const CONFIG = {
       getHomes: "/home",
       postHome: "/home",
       putHome: (id: string) => `/home/${id}`,
+      deleteHome: (id: string) => `/home/${id}`,
     },
     power: {
       getPowerUsage: (homeId: string, startDate: string, endDate: string) =>

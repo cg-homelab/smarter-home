@@ -9,6 +9,7 @@ import {
   Pencil,
   Check,
   X,
+  Trash2,
 } from "lucide-react";
 import {
   homeService,
@@ -25,6 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 interface FormState {
   name: string;
@@ -49,6 +51,12 @@ export function Homes() {
   const [editForm, setEditForm] = React.useState<FormState>(EMPTY_FORM);
   const [editError, setEditError] = React.useState<string | null>(null);
   const [editSubmitting, setEditSubmitting] = React.useState(false);
+
+  // Delete state
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
+    null,
+  );
+  const [deleteSubmitting, setDeleteSubmitting] = React.useState(false);
 
   const [revealedTokens, setRevealedTokens] = React.useState<Set<string>>(
     new Set(),
@@ -139,6 +147,22 @@ export function Homes() {
     setForm(EMPTY_FORM);
     setFormError(null);
     setShowForm(false);
+  }
+
+  async function handleDelete() {
+    if (!deleteTargetId) return;
+    setDeleteSubmitting(true);
+    try {
+      await homeService.deleteHome(deleteTargetId);
+      setHomes((prev) => prev.filter((h) => h.id !== deleteTargetId));
+      setDeleteTargetId(null);
+    } catch (err) {
+      const apiErr = err as ApiError;
+      setError(apiErr.message ?? "Failed to delete home");
+      setDeleteTargetId(null);
+    } finally {
+      setDeleteSubmitting(false);
+    }
   }
 
   return (
@@ -360,15 +384,26 @@ export function Homes() {
                           <Home className="h-4 w-4 text-muted-foreground" />
                           {home.name}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-                          onClick={() => startEdit(home)}
-                          aria-label="Edit home"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                            onClick={() => startEdit(home)}
+                            aria-label="Edit home"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => setDeleteTargetId(home.id)}
+                            aria-label="Delete home"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-3">
@@ -400,6 +435,19 @@ export function Homes() {
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTargetId(null);
+        }}
+        title="Delete home"
+        description={`Are you sure you want to delete "${homes.find((h) => h.id === deleteTargetId)?.name ?? "this home"}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleteSubmitting}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

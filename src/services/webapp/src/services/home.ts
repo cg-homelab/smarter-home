@@ -35,4 +35,9 @@ export const homeService = {
       method: "PUT",
       body: payload,
     }),
+
+  deleteHome: (id: string): Promise<void> =>
+    apiFetch<void>(CONFIG.endpoints.home.deleteHome(id), {
+      method: "DELETE",
+    }),
 };
