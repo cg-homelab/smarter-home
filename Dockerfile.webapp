@@ -21,10 +21,14 @@ FROM nginx:alpine AS prod
 # Copy built assets
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Copy entrypoint script that injects runtime env vars before starting nginx
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 # Metadata
 LABEL maintainer="Martin Ellegard"
 LABEL repository="https://github.com/cg-homelab/smarter-home"
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

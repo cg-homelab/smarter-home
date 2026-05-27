@@ -1,4 +1,5 @@
 .cargo/
 .env
 target/
+**/node_modules/
 
