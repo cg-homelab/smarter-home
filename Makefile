@@ -61,7 +61,7 @@ dev-api:
 
 # Run webapp without docker
 dev-webapp:
-	@cd src/services/webapp && pnpm run dev
+	@cd src/services/webapp && npm run dev
 
 ## Database
 # Check status of database
