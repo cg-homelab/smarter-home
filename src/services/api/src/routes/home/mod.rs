@@ -1,7 +1,8 @@
-use axum::{extract::State, response::IntoResponse, Json};
+use axum::{extract::{Path, State}, response::IntoResponse, Json};
 use lib_db::home;
-use lib_models::{domain::home::DomainNewHome, error::Error};
+use lib_models::{domain::home::{DomainNewHome, DomainUpdateHome}, error::Error};
 use lib_utils::crypto::Claims;
+use uuid::Uuid;
 
 use crate::routes::AppState;
 
@@ -101,6 +102,69 @@ pub async fn get_homes(claims: Claims, State(state): State<AppState>) -> impl In
         }
         Err(error) => {
             tracing::warn!("Get homes failed: {:0}", &error);
+            error.into_response()
+        }
+    }
+}
+
+/// Updates the name and address of an existing home owned by the authenticated user.
+#[utoipa::path(
+    put,
+    path = "/home/{id}",
+    tag = "home",
+    params(
+        ("id" = Uuid, Path, description = "Home ID")
+    ),
+    request_body = DomainUpdateHome,
+    responses(
+        (status = 200, description = "Home updated", body = lib_models::domain::home::DomainHome),
+        (status = 401, description = "Unauthorized", body = String),
+        (status = 403, description = "Forbidden", body = String),
+        (status = 404, description = "Not found", body = String),
+        (status = 500, description = "Internal Server Error", body = String),
+    )
+)]
+pub async fn put_home(
+    claims: Claims,
+    State(state): State<AppState>,
+    Path(home_id): Path<Uuid>,
+    Json(input): Json<DomainUpdateHome>,
+) -> impl IntoResponse {
+    tracing::debug!(
+        "User {} is attempting to update home {}",
+        claims.sub,
+        home_id
+    );
+
+    let user_id = match claims.id {
+        Some(id) => id,
+        None => {
+            let error = Error::Unauthorized;
+            tracing::debug!("Update home failed: {:0}", &error);
+            return error.into_response();
+        }
+    };
+
+    match home::Home::check_user_on_home(&state.db, home_id, user_id).await {
+        Ok(true) => {}
+        Ok(false) => {
+            let error = Error::Forbidden;
+            tracing::warn!("Update home forbidden for user {}", user_id);
+            return error.into_response();
+        }
+        Err(error) => {
+            tracing::warn!("Ownership check failed: {:0}", &error);
+            return error.into_response();
+        }
+    }
+
+    match home::Home::update_home(&state.db, home_id, &input).await {
+        Ok(updated) => {
+            tracing::debug!("Home {} updated", home_id);
+            Json(updated).into_response()
+        }
+        Err(error) => {
+            tracing::warn!("Update home failed: {:0}", &error);
             error.into_response()
         }
     }

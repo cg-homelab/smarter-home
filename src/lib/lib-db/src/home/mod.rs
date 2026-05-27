@@ -1,5 +1,5 @@
 use crate::Db;
-use lib_models::domain::home::{DomainHome, DomainNewHome};
+use lib_models::domain::home::{DomainHome, DomainNewHome, DomainUpdateHome};
 use lib_models::error::Error;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -148,5 +148,40 @@ impl Home {
             })
             .collect();
         Ok(domain_homes)
+    }
+
+    /// Update the name and address of an existing home
+    /// # Arguments
+    /// * `db` - Database connection
+    /// * `home_id` - Home ID to update
+    /// * `update` - Updated home data
+    /// # Returns
+    /// * `Result<DomainHome, Error>` - Updated home or error
+    pub async fn update_home(
+        db: &Db,
+        home_id: Uuid,
+        update: &DomainUpdateHome,
+    ) -> Result<DomainHome, Error> {
+        let home = sqlx::query_as!(
+            Home,
+            r#"
+            UPDATE homes
+            SET name = $1, address = $2, updated_at = NOW()
+            WHERE id = $3
+            RETURNING id, name, address, token, tibber_token
+            "#,
+            update.name,
+            update.address,
+            home_id,
+        )
+        .fetch_one(&db.pool)
+        .await?;
+
+        Ok(DomainHome {
+            id: home.id,
+            name: home.name,
+            address: home.address,
+            write_token: home.token,
+        })
     }
 }

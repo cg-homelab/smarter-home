@@ -13,6 +13,7 @@ const CONFIG = {
     home: {
       getHomes: "/home",
       postHome: "/home",
+      putHome: (id: string) => `/home/${id}`,
     },
     power: {
       getPowerUsage: (homeId: string, startDate: string, endDate: string) =>

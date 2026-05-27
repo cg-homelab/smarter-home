@@ -15,6 +15,11 @@ export interface NewHome {
   address: string;
 }
 
+export interface UpdateHome {
+  name: string;
+  address: string;
+}
+
 export const homeService = {
   getHomes: (): Promise<Home[]> =>
     apiFetch<Home[]>(CONFIG.endpoints.home.getHomes),
@@ -22,6 +27,12 @@ export const homeService = {
   createHome: (payload: NewHome): Promise<Home> =>
     apiFetch<Home>(CONFIG.endpoints.home.postHome, {
       method: "POST",
+      body: payload,
+    }),
+
+  updateHome: (id: string, payload: UpdateHome): Promise<Home> =>
+    apiFetch<Home>(CONFIG.endpoints.home.putHome(id), {
+      method: "PUT",
       body: payload,
     }),
 };

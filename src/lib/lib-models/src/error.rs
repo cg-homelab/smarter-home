@@ -62,6 +62,9 @@ pub enum Error {
 
     #[error("Invalid Bearer token")]
     InvalidToken,
+
+    #[error("Forbidden")]
+    Forbidden,
 }
 /// Implement IntoResponse for Error to convert it into an HTTP response
 impl IntoResponse for Error {
@@ -82,6 +85,7 @@ impl IntoResponse for Error {
             Error::Unauthorized => StatusCode::UNAUTHORIZED,
             Error::Conflict(_) => StatusCode::CONFLICT,
             Error::InvalidToken => StatusCode::UNAUTHORIZED,
+            Error::Forbidden => StatusCode::FORBIDDEN,
         };
         (status, Json(self.to_string())).into_response()
     }
