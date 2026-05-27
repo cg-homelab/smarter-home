@@ -59,6 +59,10 @@ stop-docker:
 dev-api:
 	@cargo run --bin api
 
+# Run webapp without docker
+dev-webapp:
+	@cd src/services/webapp && npm run dev
+
 ## Database
 # Check status of database
 db-status:

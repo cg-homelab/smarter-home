@@ -1,6 +1,8 @@
 import * as React from "react"
 import { Outlet, Link, useLocation } from "react-router-dom"
+import { LogOut, User } from "lucide-react"
 import { ModeToggle } from "@/components/theme/mode-toggle"
+import { useAuth } from "@/context/auth-context"
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -15,6 +17,15 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
 function generateBreadcrumbs(pathname: string) {
   const paths = pathname.split("/").filter(Boolean)
@@ -35,6 +46,7 @@ function generateBreadcrumbs(pathname: string) {
 
 export function AppLayout() {
   const location = useLocation()
+  const { user, logout } = useAuth()
   const breadcrumbs = generateBreadcrumbs(location.pathname)
 
   return (
@@ -58,7 +70,27 @@ export function AppLayout() {
               </NavigationMenuList>
             </NavigationMenu>
           </div>
-          <ModeToggle />
+          <div className="flex items-center gap-2">
+            <ModeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon-sm" aria-label="User menu">
+                  <User />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="text-sm font-medium leading-none">{user?.email}</p>
+                  <p className="mt-1 text-xs text-muted-foreground capitalize">{user?.role}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={logout} className="text-destructive focus:text-destructive">
+                  <LogOut />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </header>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
