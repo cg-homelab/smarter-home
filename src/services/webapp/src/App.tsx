@@ -1,12 +1,13 @@
-import './App.css'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/auth-context'
-import { AppLayout } from './components/layout/app-layout'
-import { ProtectedRoute } from './components/auth/protected-route'
-import { Dashboard } from './pages/dashboard'
-import { About } from './pages/about'
-import { Login } from './pages/login'
-import { Register } from './pages/register'
+import "./App.css";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/auth-context";
+import { AppLayout } from "./components/layout/app-layout";
+import { ProtectedRoute } from "./components/auth/protected-route";
+import { Dashboard } from "./pages/dashboard";
+import { About } from "./pages/about";
+import { Homes } from "./pages/homes";
+import { Login } from "./pages/login";
+import { Register } from "./pages/register";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             }
           >
             <Route path="/" element={<Dashboard />} />
+            <Route path="/homes" element={<Homes />} />
             <Route path="/about" element={<About />} />
           </Route>
 
@@ -33,7 +35,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
