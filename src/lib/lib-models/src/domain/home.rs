@@ -27,3 +27,14 @@ pub struct DomainNewHome {
     pub name: String,
     pub address: String,
 }
+
+/// DomainUpdateHome struct representing the fields that can be updated on a home
+/// # Fields
+/// * `name` - Home name
+/// * `address` - Home address
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DomainUpdateHome {
+    pub name: String,
+    pub address: String,
+}

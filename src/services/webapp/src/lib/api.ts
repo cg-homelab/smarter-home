@@ -1,29 +1,23 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
-
-export interface AuthResponse {
-  message: string;
-  accessToken: string;
-  tokenType: string;
-}
-
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-export interface RegisterPayload {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-}
+import CONFIG from "@/lib/config";
 
 export interface ApiError {
   message: string;
   status: number;
 }
 
-async function handleResponse<T>(res: Response): Promise<T> {
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
+export interface FetchOptions {
+  method?: HttpMethod;
+  body?: unknown;
+  headers?: Record<string, string>;
+}
+
+export async function handleResponse<T>(res: Response): Promise<T> {
+  if (res.status === 401) {
+    // Token is invalid or expired — clear it so the user is prompted to log in again
+    localStorage.removeItem(CONFIG.tokenKey);
+  }
   if (!res.ok) {
     let message = res.statusText;
     try {
@@ -34,27 +28,42 @@ async function handleResponse<T>(res: Response): Promise<T> {
     }
     throw { message, status: res.status } satisfies ApiError;
   }
+  if (res.status === 204 || res.headers.get("content-length") === "0") {
+    return undefined as T;
+  }
   return res.json() as Promise<T>;
 }
 
-export const authApi = {
-  login: (payload: LoginPayload): Promise<AuthResponse> =>
-    fetch(`${API_BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify(payload),
-    }).then(handleResponse<AuthResponse>),
+/**
+ * Authenticated fetch wrapper. Automatically attaches the stored Bearer token
+ * to every request. Developers only need to supply the path, method, and body.
+ *
+ * @example
+ * const data = await apiFetch<Device[]>("/devices");
+ * const created = await apiFetch<Device>("/devices", { method: "POST", body: newDevice });
+ */
+export async function apiFetch<T>(
+  path: string,
+  options: FetchOptions = {},
+): Promise<T> {
+  const { method = "GET", body, headers = {} } = options;
 
-  register: (payload: RegisterPayload): Promise<AuthResponse> =>
-    fetch(`${API_BASE_URL}/auth/signup`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify(payload),
-    }).then(handleResponse<AuthResponse>),
-};
+  const token = localStorage.getItem(CONFIG.tokenKey);
+
+  const requestHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...headers,
+  };
+
+  if (token) {
+    requestHeaders["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${CONFIG.apiBaseUrl}${path}`, {
+    method,
+    headers: requestHeaders,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  return handleResponse<T>(res);
+}

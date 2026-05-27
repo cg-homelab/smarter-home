@@ -1,7 +1,10 @@
 import * as React from "react";
-import { authApi, type LoginPayload, type RegisterPayload } from "@/lib/api";
-
-const TOKEN_KEY = "smarter_home_token";
+import CONFIG from "@/lib/config";
+import {
+  authService,
+  type LoginPayload,
+  type RegisterPayload,
+} from "../services/auth";
 
 interface JwtPayload {
   sub: string; // email
@@ -49,11 +52,11 @@ function userFromToken(token: string): AuthUser | null {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = React.useState<string | null>(() => {
-    const stored = localStorage.getItem(TOKEN_KEY);
+    const stored = localStorage.getItem(CONFIG.tokenKey);
     if (!stored) return null;
     const payload = decodeJwt(stored);
     if (!payload || isTokenExpired(payload)) {
-      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(CONFIG.tokenKey);
       return null;
     }
     return stored;
@@ -65,22 +68,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const storeToken = (newToken: string) => {
-    localStorage.setItem(TOKEN_KEY, newToken);
+    localStorage.setItem(CONFIG.tokenKey, newToken);
     setToken(newToken);
   };
 
   const login = async (payload: LoginPayload) => {
-    const res = await authApi.login(payload);
+    const res = await authService.login(payload);
     storeToken(res.accessToken);
   };
 
   const register = async (payload: RegisterPayload) => {
-    const res = await authApi.register(payload);
+    const res = await authService.register(payload);
     storeToken(res.accessToken);
   };
 
   const logout = () => {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(CONFIG.tokenKey);
     setToken(null);
   };
 

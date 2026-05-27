@@ -1,0 +1,2 @@
+ALTER TABLE homes
+    ALTER COLUMN token TYPE VARCHAR(255);

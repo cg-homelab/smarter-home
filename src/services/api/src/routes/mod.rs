@@ -1,7 +1,7 @@
 // use axum::middleware::from_fn_with_state;
 use axum::{
     response::{Html, IntoResponse},
-    routing::{get, post},
+    routing::{delete, get, post, put},
 };
 use scalar_api_reference::scalar_html;
 use serde_json::json;
@@ -30,6 +30,8 @@ pub mod user;
         // Home
         home::post_home,
         home::get_homes,
+        home::put_home,
+        home::delete_home,
         // Power
         power::post::post_power_metric,
         power::get::get_metrics_for_period,
@@ -66,7 +68,8 @@ pub fn create_router(db: lib_db::Db) -> axum::Router {
     let home_routes: axum::Router = axum::Router::new()
         .route("/home", post(home::post_home))
         .route("/home", get(home::get_homes))
-        // .route("/home", get(home::get_homes))
+        .route("/home/{id}", put(home::put_home))
+        .route("/home/{id}", delete(home::delete_home))
         .with_state(app_state.clone());
 
     let cors = CorsLayer::new()

@@ -1,0 +1,2 @@
+ALTER TABLE homes
+    ALTER COLUMN address TYPE VARCHAR(255);
