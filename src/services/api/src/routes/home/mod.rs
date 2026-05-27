@@ -1,6 +1,13 @@
-use axum::{extract::{Path, State}, response::IntoResponse, Json};
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+    Json,
+};
 use lib_db::home;
-use lib_models::{domain::home::{DomainNewHome, DomainUpdateHome}, error::Error};
+use lib_models::{
+    domain::home::{DomainNewHome, DomainUpdateHome},
+    error::Error,
+};
 use lib_utils::crypto::Claims;
 use uuid::Uuid;
 
@@ -37,7 +44,7 @@ pub async fn post_home(
             if exists {
                 let error = lib_models::error::Error::Conflict(format!(
                     "Home with address {} already exists",
-                    &input.address
+                    input.address
                 ));
                 tracing::warn!("Home save failed: {:0}", &error);
                 return error.into_response();
