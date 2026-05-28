@@ -2,7 +2,7 @@
 // server components and client components.
 
 export interface AuthUser {
-  email: string;
-  role: string;
-  id: string | null;
+    email: string
+    role: string
+    id: string | null
 }
