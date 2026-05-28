@@ -1,4 +1,3 @@
-import { apiFetch } from '@/lib/api'
 import { Home, getHomes } from './actions'
 import { HomesClient } from '@/components/homes/homes-client'
 

@@ -1,7 +1,7 @@
 'use server'
 
 import { apiFetch } from '@/lib/api'
-import { revalidateTag } from 'next/cache'
+// import { revalidateTag } from 'next/cache'
 
 export interface Home {
     id: string
