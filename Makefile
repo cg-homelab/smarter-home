@@ -26,15 +26,9 @@ install-dependencies: validate-system
 	# TODO: Have been some problems related to this.
 	# @echo "Installing database dependencies..." && \
 	# cargo install sqlx-cli --no-default-features --features rustls,postgres
-	@cd src/services/frontend && \
-	echo "Installing frontend dependencies..." && \
-	npm install
-	@cd src/services/desktop && \
-	echo "Installing desktop dependencies..." && \
-	npm install
 	@cd src/services/webapp && \
 	echo "Installing webapp dependencies..." && \
-	npm install
+	bun install
 	@echo "Installing github dependencies..." && \
 	npm i -D @actions/github-script@github:actions/github-script
 
@@ -43,25 +37,21 @@ install-dependencies: validate-system
 start-docker:
 	@docker compose up --build
 
-# Start just database
-start-database:
-	@docker compose up -d database
-
-# Start desktop app
-start-desktop:
-	@cd src/desktop && npm run dev
-
 # Stop with docker
 stop-docker:
 	@docker compose down
+
+# Start just database
+start-database:
+	@docker compose up -d database
 
 # Run api without docker
 dev-api:
 	@cargo run --bin api
 
 # Run webapp without docker
-dev-webapp:
-	@cd src/services/webapp && npm run dev
+dev-web:
+	@cd src/services/webapp && bun run dev
 
 ## Database
 # Check status of database

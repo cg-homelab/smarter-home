@@ -1,34 +1,89 @@
 # syntax=docker/dockerfile:1
+# ============================================
+# Stage 1: Dependencies Installation Stage
+# ============================================
 
-# Build stage
-FROM node:22-alpine AS build
+# This Dockerfile.bun is specifically configured for projects using Bun
+# For npm/pnpm or yarn, refer to the Dockerfile instead
 
+FROM oven/bun:1 AS dependencies
+
+# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY src/services/webapp/package.json ./
+# Copy package-related files first to leverage Docker's caching mechanism
+COPY src/services/webapp/package.json src/services/webapp/bun.lock* ./
 
-RUN npm install
+# Install project dependencies with frozen lockfile for reproducible builds
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+  bun install --no-save --frozen-lockfile
 
-# Copy webapp source and build
-COPY src/services/webapp/ .
+# ============================================
+# Stage 2: Build Next.js application in standalone mode
+# ============================================
 
-RUN npm run build
+FROM oven/bun:1 AS builder
 
-# Production stage - serve with nginx
-FROM nginx:alpine AS prod
+# Set working directory
+WORKDIR /app
 
-# Copy built assets
-COPY --from=build /app/dist /usr/share/nginx/html
+# Copy project dependencies from dependencies stage
+COPY --from=dependencies /app/node_modules ./node_modules
 
-# Copy entrypoint script that injects runtime env vars before starting nginx
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# Copy application source code
+COPY src/services/webapp/. ./
 
-# Metadata
-LABEL maintainer="Martin Ellegard"
-LABEL repository="https://github.com/cg-homelab/smarter-home"
+ENV NODE_ENV=production
 
-EXPOSE 80
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
+ENV NEXT_TELEMETRY_DISABLED=1
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Build Next.js application
+RUN bun run build
+
+# ============================================
+# Stage 3: Run Next.js application
+# ============================================
+
+FROM oven/bun:1 AS runner
+
+# Set working directory
+WORKDIR /app
+
+# Set production environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the run time.
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Copy production assets
+COPY --from=builder --chown=bun:bun /app/public ./public
+
+# Set the correct permission for prerender cache
+RUN mkdir .next && chown bun:bun .next
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=bun:bun /app/.next/standalone/app ./
+COPY --from=builder --chown=bun:bun /app/.next/static ./.next/static
+
+# Log files in ./ and sleep for 10 seconds
+
+# If you want to persist the fetch cache generated during the build so that
+# cached responses are available immediately on startup, uncomment this line:
+# COPY --from=builder --chown=bun:bun /app/.next/cache ./.next/cache
+
+# Switch to non-root user for security best practices
+USER bun
+
+# Expose port 3000 to allow HTTP traffic
+EXPOSE 3000
+
+# Start Next.js standalone server with Bun
+CMD ["bun", "server.js"]
