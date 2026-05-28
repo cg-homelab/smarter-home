@@ -31,8 +31,8 @@ services:
       - ${FRONTEND_PORT}:3000
     environment:
       - API_URL=http://backend:${BACKEND_PORT}
-    # depends_on:
-    #   - backend
+    depends_on:
+      - backend
     networks:
       - smarter_home
 
