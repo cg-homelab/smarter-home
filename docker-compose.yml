@@ -28,11 +28,11 @@ services:
       dockerfile: Dockerfile.webapp
     restart: unless-stopped
     ports:
-      - ${FRONTEND_PORT}:80
+      - ${FRONTEND_PORT}:3000
     environment:
-      - API_URL=http://localhost:${BACKEND_PORT}
-    depends_on:
-      - backend
+      - API_URL=http://backend:${BACKEND_PORT}
+    # depends_on:
+    #   - backend
     networks:
       - smarter_home
 

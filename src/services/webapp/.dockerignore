@@ -1,7 +1,3 @@
-.cargo/
-.env
-target/
-
 ######################################################
 
 # Dependencies (installed inside Docker, never copied)
