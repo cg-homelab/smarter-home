@@ -98,7 +98,6 @@ where
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         // let decoding_key = DecodingKey::from_secret(KEYS.as_bytes());
         // Extract the token from the authorization header
-        dbg!(parts.clone());
         let TypedHeader(Authorization(bearer)) = parts
             .extract::<TypedHeader<Authorization<Bearer>>>()
             .await
@@ -159,7 +158,6 @@ pub fn generate_jwt(sub: String, role: Role, id: Option<Uuid>, indefenant: bool)
     // let encoding_key = EncodingKey::from_secret(KEYS.as_bytes());
 
     let claims = Claims { sub, role, id, exp };
-    dbg!(claims.clone());
 
     encode(&Header::new(Algorithm::HS256), &claims, &KEYS.encoding)
         .unwrap_or("failed_to_generate_token".to_string())
