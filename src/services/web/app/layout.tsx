@@ -25,14 +25,24 @@ export default function RootLayout({
 }>) {
   return (
     <html
+      suppressHydrationWarning
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+            >
+              {children}
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );
 }
 
-import "./globals.css";
+import "./globals.css";import { ThemeProvider } from "@/components/theme/theme-provider";
+
