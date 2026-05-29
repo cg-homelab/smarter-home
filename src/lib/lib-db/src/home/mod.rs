@@ -115,6 +115,7 @@ impl Home {
             name: home.name,
             address: home.address,
             write_token: home.token,
+            is_favorite: false,
         })
     }
 
@@ -125,11 +126,10 @@ impl Home {
     /// # Returns
     /// * `Result<Vec<DomainHome>, Error>` - List of homes or error
     pub async fn get_homes(db: &Db, user_id: Uuid) -> Result<Vec<DomainHome>, Error> {
-        // Get all homes for a user
-        let homes = sqlx::query_as!(
-            Home,
+        // Get all homes for a user, including per-user favorite status
+        let homes = sqlx::query!(
             r#"
-            SELECT h.id, h.name, h.address, h.token, h.tibber_token
+            SELECT h.id, h.name, h.address, h.token, h.tibber_token, uh.is_favorite
             FROM homes h
             JOIN user_homes uh ON h.id = uh.home_id
             WHERE uh.user_id = $1
@@ -140,11 +140,12 @@ impl Home {
         .await?;
         let domain_homes = homes
             .into_iter()
-            .map(|home| DomainHome {
-                id: home.id,
-                name: home.name,
-                address: home.address,
-                write_token: home.token,
+            .map(|r| DomainHome {
+                id: r.id,
+                name: r.name,
+                address: r.address,
+                write_token: r.token,
+                is_favorite: r.is_favorite,
             })
             .collect();
         Ok(domain_homes)
@@ -154,12 +155,14 @@ impl Home {
     /// # Arguments
     /// * `db` - Database connection
     /// * `home_id` - Home ID to update
+    /// * `user_id` - User ID (used to retrieve per-user favorite status)
     /// * `update` - Updated home data
     /// # Returns
     /// * `Result<DomainHome, Error>` - Updated home or error
     pub async fn update_home(
         db: &Db,
         home_id: Uuid,
+        user_id: Uuid,
         update: &DomainUpdateHome,
     ) -> Result<DomainHome, Error> {
         let home = sqlx::query_as!(
@@ -177,11 +180,69 @@ impl Home {
         .fetch_one(&db.pool)
         .await?;
 
+        let is_favorite = sqlx::query!(
+            "SELECT is_favorite FROM user_homes WHERE home_id = $1 AND user_id = $2",
+            home_id,
+            user_id,
+        )
+        .fetch_one(&db.pool)
+        .await?
+        .is_favorite;
+
         Ok(DomainHome {
             id: home.id,
             name: home.name,
             address: home.address,
             write_token: home.token,
+            is_favorite,
+        })
+    }
+
+    /// Set the favorite status of a home for a specific user
+    /// # Arguments
+    /// * `db` - Database connection
+    /// * `home_id` - Home ID
+    /// * `user_id` - User ID
+    /// * `is_favorite` - New favorite status
+    /// # Returns
+    /// * `Result<DomainHome, Error>` - Updated home or error
+    pub async fn set_favorite_home(
+        db: &Db,
+        home_id: Uuid,
+        user_id: Uuid,
+        is_favorite: bool,
+    ) -> Result<DomainHome, Error> {
+        let result = sqlx::query!(
+            "UPDATE user_homes SET is_favorite = $1 WHERE home_id = $2 AND user_id = $3",
+            is_favorite,
+            home_id,
+            user_id,
+        )
+        .execute(&db.pool)
+        .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(Error::EntityNotFound);
+        }
+
+        let home = sqlx::query_as!(
+            Home,
+            r#"
+            SELECT id, name, address, token, tibber_token
+            FROM homes
+            WHERE id = $1
+            "#,
+            home_id,
+        )
+        .fetch_one(&db.pool)
+        .await?;
+
+        Ok(DomainHome {
+            id: home.id,
+            name: home.name,
+            address: home.address,
+            write_token: home.token,
+            is_favorite,
         })
     }
 
@@ -192,12 +253,9 @@ impl Home {
     /// # Returns
     /// * `Result<(), Error>` - Ok if deleted, error otherwise
     pub async fn delete_home(db: &Db, home_id: Uuid) -> Result<(), Error> {
-        let result = sqlx::query!(
-            "DELETE FROM homes WHERE id = $1",
-            home_id,
-        )
-        .execute(&db.pool)
-        .await?;
+        let result = sqlx::query!("DELETE FROM homes WHERE id = $1", home_id,)
+            .execute(&db.pool)
+            .await?;
 
         if result.rows_affected() == 0 {
             return Err(Error::EntityNotFound);

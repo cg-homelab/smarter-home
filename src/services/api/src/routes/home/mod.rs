@@ -5,7 +5,7 @@ use axum::{
 };
 use lib_db::home;
 use lib_models::{
-    domain::home::{DomainNewHome, DomainUpdateHome},
+    domain::home::{DomainNewHome, DomainSetFavoriteHome, DomainUpdateHome},
     error::Error,
 };
 use lib_utils::crypto::Claims;
@@ -165,7 +165,7 @@ pub async fn put_home(
         }
     }
 
-    match home::Home::update_home(&state.db, home_id, &input).await {
+    match home::Home::update_home(&state.db, home_id, user_id, &input).await {
         Ok(updated) => {
             tracing::debug!("Home {} updated", home_id);
             Json(updated).into_response()
@@ -233,6 +233,70 @@ pub async fn delete_home(
         }
         Err(error) => {
             tracing::warn!("Delete home failed: {:0}", &error);
+            error.into_response()
+        }
+    }
+}
+
+/// Sets the favorite status of a home for the authenticated user.
+#[utoipa::path(
+    patch,
+    path = "/home/{id}/favorite",
+    tag = "home",
+    params(
+        ("id" = Uuid, Path, description = "Home ID")
+    ),
+    request_body = DomainSetFavoriteHome,
+    responses(
+        (status = 200, description = "Favorite status updated", body = lib_models::domain::home::DomainHome),
+        (status = 401, description = "Unauthorized", body = String),
+        (status = 403, description = "Forbidden", body = String),
+        (status = 404, description = "Not found", body = String),
+        (status = 500, description = "Internal Server Error", body = String),
+    )
+)]
+pub async fn patch_home_favorite(
+    claims: Claims,
+    State(state): State<AppState>,
+    Path(home_id): Path<Uuid>,
+    Json(input): Json<DomainSetFavoriteHome>,
+) -> impl IntoResponse {
+    tracing::debug!(
+        "User {} is attempting to set favorite={} on home {}",
+        claims.sub,
+        input.is_favorite,
+        home_id
+    );
+
+    let user_id = match claims.id {
+        Some(id) => id,
+        None => {
+            let error = Error::Unauthorized;
+            tracing::debug!("Set favorite failed: {:0}", &error);
+            return error.into_response();
+        }
+    };
+
+    match home::Home::check_user_on_home(&state.db, home_id, user_id).await {
+        Ok(true) => {}
+        Ok(false) => {
+            let error = Error::Forbidden;
+            tracing::warn!("Set favorite forbidden for user {}", user_id);
+            return error.into_response();
+        }
+        Err(error) => {
+            tracing::warn!("Ownership check failed: {:0}", &error);
+            return error.into_response();
+        }
+    }
+
+    match home::Home::set_favorite_home(&state.db, home_id, user_id, input.is_favorite).await {
+        Ok(updated) => {
+            tracing::debug!("Home {} favorite set to {}", home_id, input.is_favorite);
+            Json(updated).into_response()
+        }
+        Err(error) => {
+            tracing::warn!("Set favorite failed: {:0}", &error);
             error.into_response()
         }
     }

@@ -1,6 +1,9 @@
-import { PowerConsumptionChart } from '@/components/analytics/power-consumption'
+import { getDashboardData } from './actions'
+import { PowerLineChart } from '@/components/analytics/power-line-chart'
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+    const { home, metrics } = await getDashboardData()
+
     return (
         <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1">
@@ -11,9 +14,7 @@ export default function DashboardPage() {
                     Energy analytics dashboard
                 </p>
             </div>
-            <div>
-                <PowerConsumptionChart />
-            </div>
+            <PowerLineChart metrics={metrics} homeName={home?.name ?? null} />
         </div>
     )
 }

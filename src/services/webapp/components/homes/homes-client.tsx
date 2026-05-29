@@ -13,12 +13,15 @@ import {
     Check,
     X,
     Trash2,
+    Star,
+    Fingerprint,
 } from 'lucide-react'
 import {
     Home as HomeModel,
     createHomeAction,
     updateHomeAction,
     deleteHomeAction,
+    setFavoriteHomeAction,
 } from '@/app/(app)/homes/actions'
 import {
     Card,
@@ -67,9 +70,15 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
     )
     const [deleteSubmitting, setDeleteSubmitting] = React.useState(false)
 
+    // Favorite state
+    const [favoriteSubmitting, setFavoriteSubmitting] = React.useState<
+        Set<string>
+    >(new Set())
+
     const [revealedTokens, setRevealedTokens] = React.useState<Set<string>>(
         new Set(),
     )
+    const [revealedIds, setRevealedIds] = React.useState<Set<string>>(new Set())
 
     function handleFieldChange(e: React.ChangeEvent<HTMLInputElement>) {
         const { name, value } = e.target
@@ -132,6 +141,40 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
         } finally {
             setEditSubmitting(false)
         }
+    }
+
+    async function handleToggleFavorite(home: HomeModel) {
+        setFavoriteSubmitting((prev) => new Set(prev).add(home.id))
+        try {
+            const updated = await setFavoriteHomeAction(
+                home.id,
+                !home.isFavorite,
+            )
+            setHomes((prev) =>
+                prev.map((h) => (h.id === home.id ? updated : h)),
+            )
+        } catch (err) {
+            const apiErr = err as { message?: string }
+            setError(apiErr.message ?? 'Failed to update favorite')
+        } finally {
+            setFavoriteSubmitting((prev) => {
+                const next = new Set(prev)
+                next.delete(home.id)
+                return next
+            })
+        }
+    }
+
+    function toggleId(id: string) {
+        setRevealedIds((prev) => {
+            const next = new Set(prev)
+            if (next.has(id)) {
+                next.delete(id)
+            } else {
+                next.add(id)
+            }
+            return next
+        })
     }
 
     function toggleToken(id: string) {
@@ -305,6 +348,7 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                     {homes.map((home) => {
                         const isEditing = editingId === home.id
                         const isRevealed = revealedTokens.has(home.id)
+                        const isIdRevealed = revealedIds.has(home.id)
 
                         return (
                             <Card key={home.id}>
@@ -412,6 +456,33 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
+                                                        className={`h-7 w-7 p-0 ${home.isFavorite ? 'text-yellow-400 hover:text-yellow-500' : 'text-muted-foreground hover:text-yellow-400'}`}
+                                                        onClick={() =>
+                                                            handleToggleFavorite(
+                                                                home,
+                                                            )
+                                                        }
+                                                        disabled={favoriteSubmitting.has(
+                                                            home.id,
+                                                        )}
+                                                        aria-label={
+                                                            home.isFavorite
+                                                                ? 'Unmark as favorite'
+                                                                : 'Mark as favorite'
+                                                        }
+                                                    >
+                                                        <Star
+                                                            className="h-3.5 w-3.5"
+                                                            fill={
+                                                                home.isFavorite
+                                                                    ? 'currentColor'
+                                                                    : 'none'
+                                                            }
+                                                        />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
                                                         className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
                                                         onClick={() =>
                                                             startEdit(home)
@@ -440,6 +511,26 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                                             <div className="flex items-start gap-2 text-sm text-muted-foreground">
                                                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                                                 <span>{home.address}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Fingerprint className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                                <code className="flex-1 truncate rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
+                                                    {isIdRevealed
+                                                        ? home.id
+                                                        : '••••••••••••••••••••'}
+                                                </code>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 px-2 text-xs"
+                                                    onClick={() =>
+                                                        toggleId(home.id)
+                                                    }
+                                                >
+                                                    {isIdRevealed
+                                                        ? 'Hide'
+                                                        : 'Show'}
+                                                </Button>
                                             </div>
                                             <div className="flex items-center gap-2 text-sm">
                                                 <Key className="h-4 w-4 shrink-0 text-muted-foreground" />

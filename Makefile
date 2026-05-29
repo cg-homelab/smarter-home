@@ -45,13 +45,21 @@ stop-docker:
 start-database:
 	@docker compose up -d database
 
-# Run api without docker
-dev-api:
+# API
+api-dev:
 	@cargo run --bin api
+api-lint:
+	@cargo clippy --bin api
+api-format:
+	@cargo fmt
 
-# Run webapp without docker
-dev-web:
+# Webapp
+web-dev:
 	@cd src/services/webapp && bun run dev
+web-lint:
+	@cd src/services/webapp && bun run lint
+web-format:
+	@cd src/services/webapp && bun run format
 
 ## Database
 # Check status of database
