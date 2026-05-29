@@ -14,6 +14,7 @@ import {
     X,
     Trash2,
     Star,
+    Fingerprint,
 } from 'lucide-react'
 import {
     Home as HomeModel,
@@ -75,6 +76,9 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
     >(new Set())
 
     const [revealedTokens, setRevealedTokens] = React.useState<Set<string>>(
+        new Set(),
+    )
+    const [revealedIds, setRevealedIds] = React.useState<Set<string>>(
         new Set(),
     )
 
@@ -161,6 +165,18 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                 return next
             })
         }
+    }
+
+    function toggleId(id: string) {
+        setRevealedIds((prev) => {
+            const next = new Set(prev)
+            if (next.has(id)) {
+                next.delete(id)
+            } else {
+                next.add(id)
+            }
+            return next
+        })
     }
 
     function toggleToken(id: string) {
@@ -334,6 +350,7 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                     {homes.map((home) => {
                         const isEditing = editingId === home.id
                         const isRevealed = revealedTokens.has(home.id)
+                        const isIdRevealed = revealedIds.has(home.id)
 
                         return (
                             <Card key={home.id}>
@@ -496,6 +513,26 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                                             <div className="flex items-start gap-2 text-sm text-muted-foreground">
                                                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                                                 <span>{home.address}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Fingerprint className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                                <code className="flex-1 truncate rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
+                                                    {isIdRevealed
+                                                        ? home.id
+                                                        : '••••••••••••••••••••'}
+                                                </code>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 px-2 text-xs"
+                                                    onClick={() =>
+                                                        toggleId(home.id)
+                                                    }
+                                                >
+                                                    {isIdRevealed
+                                                        ? 'Hide'
+                                                        : 'Show'}
+                                                </Button>
                                             </div>
                                             <div className="flex items-center gap-2 text-sm">
                                                 <Key className="h-4 w-4 shrink-0 text-muted-foreground" />
