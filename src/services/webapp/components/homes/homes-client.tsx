@@ -78,9 +78,7 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
     const [revealedTokens, setRevealedTokens] = React.useState<Set<string>>(
         new Set(),
     )
-    const [revealedIds, setRevealedIds] = React.useState<Set<string>>(
-        new Set(),
-    )
+    const [revealedIds, setRevealedIds] = React.useState<Set<string>>(new Set())
 
     function handleFieldChange(e: React.ChangeEvent<HTMLInputElement>) {
         const { name, value } = e.target

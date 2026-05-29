@@ -14,10 +14,7 @@ export default async function DashboardPage() {
                     Energy analytics dashboard
                 </p>
             </div>
-            <PowerLineChart
-                metrics={metrics}
-                homeName={home?.name ?? null}
-            />
+            <PowerLineChart metrics={metrics} homeName={home?.name ?? null} />
         </div>
     )
 }

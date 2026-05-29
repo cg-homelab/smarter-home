@@ -253,12 +253,9 @@ impl Home {
     /// # Returns
     /// * `Result<(), Error>` - Ok if deleted, error otherwise
     pub async fn delete_home(db: &Db, home_id: Uuid) -> Result<(), Error> {
-        let result = sqlx::query!(
-            "DELETE FROM homes WHERE id = $1",
-            home_id,
-        )
-        .execute(&db.pool)
-        .await?;
+        let result = sqlx::query!("DELETE FROM homes WHERE id = $1", home_id,)
+            .execute(&db.pool)
+            .await?;
 
         if result.rows_affected() == 0 {
             return Err(Error::EntityNotFound);

@@ -43,7 +43,9 @@ export function PowerLineChart({ metrics, homeName }: PowerLineChartProps) {
                 <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center text-muted-foreground">
                     <Zap className="h-10 w-10 opacity-40" />
                     <div>
-                        <p className="text-sm font-medium">No home configured</p>
+                        <p className="text-sm font-medium">
+                            No home configured
+                        </p>
                         <p className="text-xs">
                             Add a home to start seeing power metrics.
                         </p>

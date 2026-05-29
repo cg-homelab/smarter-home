@@ -27,9 +27,9 @@ function buildMockMetrics(homeId: string): PowerMetrics[] {
     // Simulate a house that starts consuming ~1500 W, solar kicks in around
     // the midpoint and briefly pushes net power negative.
     const curve = [
-        1800, 1650, 1500, 1420, 1300, 1100, 900, 700, 500, 300, 100, -50,
-        -200, -350, -500, -620, -700, -580, -400, -200, 0, 150, 350, 500,
-        700, 900, 1100, 1300, 1450, 1600,
+        1800, 1650, 1500, 1420, 1300, 1100, 900, 700, 500, 300, 100, -50, -200,
+        -350, -500, -620, -700, -580, -400, -200, 0, 150, 350, 500, 700, 900,
+        1100, 1300, 1450, 1600,
     ]
     return curve.map((power, i) => {
         const ts = new Date(now - (29 - i) * 60 * 1000).toISOString()
