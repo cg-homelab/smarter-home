@@ -8,6 +8,7 @@ export interface Home {
     name: string
     address: string
     writeToken: string
+    isFavorite: boolean
 }
 
 export interface NewHome {
@@ -48,4 +49,14 @@ export async function updateHomeAction(
 export async function deleteHomeAction(id: string): Promise<void> {
     await apiFetch<void>(`/home/${id}`, { method: 'DELETE' })
     //   revalidateTag("homes");
+}
+
+export async function setFavoriteHomeAction(
+    id: string,
+    isFavorite: boolean,
+): Promise<Home> {
+    return await apiFetch<Home>(`/home/${id}/favorite`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isFavorite }),
+    })
 }

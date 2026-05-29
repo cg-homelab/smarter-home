@@ -13,12 +13,14 @@ import {
     Check,
     X,
     Trash2,
+    Star,
 } from 'lucide-react'
 import {
     Home as HomeModel,
     createHomeAction,
     updateHomeAction,
     deleteHomeAction,
+    setFavoriteHomeAction,
 } from '@/app/(app)/homes/actions'
 import {
     Card,
@@ -66,6 +68,11 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
         null,
     )
     const [deleteSubmitting, setDeleteSubmitting] = React.useState(false)
+
+    // Favorite state
+    const [favoriteSubmitting, setFavoriteSubmitting] = React.useState<
+        Set<string>
+    >(new Set())
 
     const [revealedTokens, setRevealedTokens] = React.useState<Set<string>>(
         new Set(),
@@ -131,6 +138,28 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
             setEditError(apiErr.message ?? 'Failed to update home')
         } finally {
             setEditSubmitting(false)
+        }
+    }
+
+    async function handleToggleFavorite(home: HomeModel) {
+        setFavoriteSubmitting((prev) => new Set(prev).add(home.id))
+        try {
+            const updated = await setFavoriteHomeAction(
+                home.id,
+                !home.isFavorite,
+            )
+            setHomes((prev) =>
+                prev.map((h) => (h.id === home.id ? updated : h)),
+            )
+        } catch (err) {
+            const apiErr = err as { message?: string }
+            setError(apiErr.message ?? 'Failed to update favorite')
+        } finally {
+            setFavoriteSubmitting((prev) => {
+                const next = new Set(prev)
+                next.delete(home.id)
+                return next
+            })
         }
     }
 
@@ -409,6 +438,33 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                                                     {home.name}
                                                 </span>
                                                 <div className="flex items-center gap-1">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className={`h-7 w-7 p-0 ${home.isFavorite ? 'text-yellow-400 hover:text-yellow-500' : 'text-muted-foreground hover:text-yellow-400'}`}
+                                                        onClick={() =>
+                                                            handleToggleFavorite(
+                                                                home,
+                                                            )
+                                                        }
+                                                        disabled={favoriteSubmitting.has(
+                                                            home.id,
+                                                        )}
+                                                        aria-label={
+                                                            home.isFavorite
+                                                                ? 'Unmark as favorite'
+                                                                : 'Mark as favorite'
+                                                        }
+                                                    >
+                                                        <Star
+                                                            className="h-3.5 w-3.5"
+                                                            fill={
+                                                                home.isFavorite
+                                                                    ? 'currentColor'
+                                                                    : 'none'
+                                                            }
+                                                        />
+                                                    </Button>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"

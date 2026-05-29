@@ -8,6 +8,7 @@ use uuid::Uuid;
 /// * `name` - Home name
 /// * `address` - Home address
 /// * `write_token` - access token for writing data to the home
+/// * `is_favorite` - whether the home is marked as favorite by the requesting user
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DomainHome {
@@ -15,6 +16,7 @@ pub struct DomainHome {
     pub name: String,
     pub address: String,
     pub write_token: String,
+    pub is_favorite: bool,
 }
 
 /// DomainNewHome struct representing a new home to be created in the domain layer
@@ -37,4 +39,13 @@ pub struct DomainNewHome {
 pub struct DomainUpdateHome {
     pub name: String,
     pub address: String,
+}
+
+/// DomainSetFavoriteHome struct for toggling the favorite status of a home
+/// # Fields
+/// * `is_favorite` - whether to mark the home as favorite
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DomainSetFavoriteHome {
+    pub is_favorite: bool,
 }
