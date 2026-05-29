@@ -201,15 +201,14 @@ export function PowerLineChart({ metrics, homeName }: PowerLineChartProps) {
                             cursor={{ strokeDasharray: '3 3' }}
                             content={
                                 <ChartTooltipContent
-                                    labelFormatter={(value: string) =>
-                                        new Date(value).toLocaleTimeString(
-                                            'en-GB',
-                                            {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                second: '2-digit',
-                                            },
-                                        )
+                                    labelFormatter={(value) =>
+                                        new Date(
+                                            value as string,
+                                        ).toLocaleTimeString('en-GB', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            second: '2-digit',
+                                        })
                                     }
                                     formatter={(value) => [
                                         `${value} W`,
