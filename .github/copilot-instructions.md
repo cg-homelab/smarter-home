@@ -1,18 +1,20 @@
 # GitHub Copilot Instructions for Smarter Home
 
+Canonical instruction source for agents: `AGENTS.md` at repository root.
+Keep this file aligned with `AGENTS.md` and `README.md` whenever commands, structure, or workflow expectations change.
+
 ## Repository Overview
 
 **Smarter Home** is an energy monitoring and analytics system that provides data analytics for home energy usage. The project helps users understand their energy consumption patterns and make smarter choices about their energy usage.
 
 ### High Level Details
-- **Project Type**: Energy monitoring system with web dashboard and desktop application
+- **Project Type**: Energy monitoring system with web dashboard and backend API
 - **Repository Size**: Medium (multi-component architecture)
-- **Languages**: Rust (backend), TypeScript/JavaScript (frontend), React (desktop app)
-- **Target Runtime**: Docker containers, web browsers, desktop environments
+- **Languages**: Rust (backend), TypeScript/JavaScript (frontend)
+- **Target Runtime**: Docker containers and web browsers
 - **Main Frameworks**: 
   - Backend: Axum (Rust web framework), SQLx (database), TimescaleDB
-  - Frontend: Next.js 15 with App Router, TailwindCSS, Shadcn UI
-  - Desktop: Tauri v2 with React and Vite
+  - Frontend: Next.js 16 with App Router, TailwindCSS, Shadcn UI
   - Database: TimescaleDB (PostgreSQL extension for time-series data)
 
 ## Build Instructions
@@ -20,17 +22,18 @@
 ### Prerequisites
 Always ensure these tools are installed before building:
 - **Rust**: Latest stable version with Cargo
-- **Node.js**: v18+ with npm
+- **Node.js**: v18+
+- **Bun**: Latest stable version (webapp commands)
 - **Docker**: Latest version with Docker Compose v2
 - **sqlx-cli**: Database migration tool (installed via `cargo install sqlx-cli`)
 
 ### Critical Build Order
 **ALWAYS** follow this exact sequence to avoid build failures:
 
-1. **System Validation**: `make validate-system` 
+1. **System Validation**: `make system-validate` 
 2. **Environment Setup**: Copy `.env.example` to `.env` and configure variables
-3. **Dependencies Installation**: `make install-dependencies`
-4. **Database Setup**: `make start-database` then `make db-up`
+3. **Dependencies Installation**: `make deps-install`
+4. **Database Setup**: `make db-start` then `make db-up`
 5. **Rust Build**: `cargo build` (from repository root)
 
 ### Core Commands
@@ -49,49 +52,31 @@ cargo run --bin api
 
 #### Frontend (Next.js)
 ```bash
-cd src/services/frontend
+cd src/services/webapp
 
-# Install dependencies (automatically done by make install-dependencies)
-npm install
+# Install dependencies (automatically done by make deps-install)
+bun install
 
 # Development server
-npm run dev
+bun run dev
 
 # Production build
-npm run build
+bun run build
 
 # Start production server
-npm run start
+bun run start
 
 # Linting
-npm run lint
-```
+bun run lint
 
-#### Desktop App (Tauri)
-```bash
-cd src/services/desktop
-
-# Install dependencies (automatically done by make install-dependencies)
-npm install
-
-# Development mode
-npm run dev
-
-# Build desktop app
-npm run build
-
-# Tauri commands
-npm run tauri dev    # Run in Tauri dev mode
-npm run tauri build  # Build native app
-
-# Or use Makefile
-make start-desktop   # Run desktop app in development mode
+# Typecheck
+bunx tsc --noEmit
 ```
 
 #### Database Operations (SQLx-based)
 ```bash
 # Start database only
-make start-database
+make db-start
 
 # Check migration status
 make db-status
@@ -115,20 +100,36 @@ make db-prepare-offline
 #### Docker Operations
 ```bash
 # Full stack with Docker
-make start-docker
+make docker-start
 
 # Stop all services
-make stop-docker
+make docker-stop
 
 # Start just database
-make start-database
+make db-start
+```
+
+#### Windows (PowerShell, no make)
+```powershell
+# System validation
+cargo --version
+bun --version
+
+# Install dependencies
+Push-Location src/services/webapp; bun install; Pop-Location
+
+# Start database only
+docker compose up -d database
+
+# Run migrations
+sqlx migrate run
 ```
 
 ### Known Issues and Workarounds
 
-#### Frontend Dependency Vulnerabilities
-**ISSUE**: npm audit shows vulnerabilities in frontend dependencies
-**BEHAVIOR**: This is common with frontend dependencies and doesn't affect functionality. Run `npm audit fix` if needed.
+#### Frontend Dependencies
+**ISSUE**: Dependency updates can drift lockfiles and local installs
+**BEHAVIOR**: Use `bun install` to refresh dependencies and keep `bun.lock` updated when changes are intentional.
 
 #### Port Conflicts
 **ISSUE**: Frontend dev server may find port 3000 in use
@@ -144,7 +145,6 @@ make start-database
 - Frontend build: ~30-60 seconds
 - Rust build (first time): ~2-3 minutes  
 - Rust build (incremental): ~10-30 seconds
-- Desktop build: ~30-60 seconds
 - Docker build: ~3-5 minutes
 - Database Docker pull: ~2-3 minutes (first time)
 - sqlx-cli installation: ~2-3 minutes (first time)
@@ -158,8 +158,7 @@ smarter-home/
 │   ├── services/api/          # Rust backend API server
 │   ├── services/              # Shared Rust libraries
 │   │   ├── api/               # Data models
-│   │   ├── frontend/          # Next.js web application
-│   │   └── desktop/           # Tauri desktop application
+│   │   ├── webapp/            # Next.js web application
 │   └── lib/                   # Shared Rust libraries
 │       ├── lib-models/        # Data models
 │       ├── lib-db/            # Database models and functions
@@ -172,8 +171,7 @@ smarter-home/
 
 ### Key Configuration Files
 - **Backend**: `src/services/api/Cargo.toml`, `Cargo.toml` (workspace)
-- **Frontend**: `src/services/frontend/package.json`, `next.config.ts`, `tailwind.config.ts`
-- **Desktop**: `src/services/desktop/package.json`, `vite.config.ts`, `src-tauri/tauri.conf.json`
+- **Frontend**: `src/services/webapp/package.json`, `next.config.ts`, `tailwind.config.ts`
 - **Database**: `migrations/0001_init.sql`, `.env.example`
 - **Docker**: `docker-compose.yml`, `Dockerfile.api`
 - **CI/CD**: `.github/workflows/run-pr-tag-gen.yml`, `.github/workflows/run-release-deploy.yml`
@@ -188,9 +186,11 @@ Copy `.env.example` to `.env` and configure:
 - **BACKEND_PORT**: API server port (default: 3001)
 - **FRONTEND_PORT**: Next.js port (default: 3000)  
 - **DATABASE_URL**: PostgreSQL connection string
-- **DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD**: Database connection details
-- **AUTH_SECRET**: NextAuth.js secret key
-- **AUTH_GITHUB_ID/SECRET**: GitHub OAuth credentials
+- **DB_HOST/DB_PORT/DB_NAME/DB_USERNAME/DB_PASSWORD/DB_SCHEMA**: Database connection details
+- **API_URL**: Server-side webapp base URL for backend requests
+- **AUTH_SECRET**: JWT signing/verification secret
+
+Reference: `docs/environment-variables.md` contains the variable-by-variable guide and deprecated keys.
 
 **CRITICAL**: The `.env.example` file provides correct defaults, but you may need to adjust `DATABASE_URL` based on your development setup:
 - For Docker development: use `database` as hostname
@@ -200,11 +200,10 @@ Copy `.env.example` to `.env` and configure:
 - **TimescaleDB**: PostgreSQL extension for time-series data (required for database)
 - **sqlx-cli**: Database migration tool (replaces older goose-based setup)
 - **Vercel Analytics**: Integrated in frontend for usage tracking
-- **Auth.js**: Authentication system for the frontend
 - **Shadcn UI**: Component library for the frontend
 
 ### Validation Steps
-1. **System Prerequisites**: `make validate-system` should pass
+1. **System Prerequisites**: `make system-validate` should pass
 2. **Database Health**: `docker compose ps` should show healthy database
 3. **API Health**: `cargo build` should complete successfully
 4. **Frontend**: Navigate to `http://localhost:3000` should load dashboard
@@ -223,8 +222,7 @@ Copy `.env.example` to `.env` and configure:
 
 ### Important Source Files
 - **API Entry Point**: `src/services/api/src/main.rs` - Axum server setup
-- **Frontend Layout**: `src/services/frontend/app/layout.tsx` - Next.js root layout  
-- **Desktop Entry**: `src/services/desktop/src/main.tsx` - React app entry
+- **Frontend Layout**: `src/services/webapp/app/layout.tsx` - Next.js root layout  
 - **Database Schema**: `migrations/` - TimescaleDB table setup
 - **Shared Models**: `src/lib/lib-models/` - Common data structures
 - **Database Functions**: `src/lib/lib-db/` - Common data structures
@@ -236,26 +234,34 @@ Copy `.env.example` to `.env` and configure:
 
 When working on this repository:
 
-1. **Always start with `make validate-system`** to ensure prerequisites
-2. **Use `make install-dependencies`** to install all required dependencies
+1. **Always start with `make system-validate`** to ensure prerequisites
+2. **Use `make deps-install`** to install all required dependencies
 3. **Copy `.env.example` to `.env`** before any database operations
 4. **Use Docker Compose v2 syntax** (`docker compose`, not `docker-compose`)
 5. **Use exact build order specified above** to prevent failures
 6. **Test both dev and production builds** after making changes
 7. **Verify Docker container health** when using containerized services
+8. **Keep `AGENTS.md`, `.github/copilot-instructions.md`, and `README.md` consistent** when changing commands, architecture guidance, or workflows
 
 ### Modern Makefile Commands
 The project has been modernized to use sqlx-cli instead of goose. Available commands:
 
 **System & Dependencies:**
-- `make validate-system` - Check prerequisites (Cargo, npm)
-- `make install-dependencies` - Install all project dependencies
+- `make system-validate` - Check current Makefile prerequisite validations
+- `make deps-install` - Install webapp dependencies
 
 **Running Services:**
-- `make start-docker` - Start full stack with Docker
-- `make start-database` - Start only the database
-- `make start-desktop` - Start desktop app in dev mode
-- `make stop-docker` - Stop Docker services
+- `make docker-start` - Start full stack with Docker
+- `make docker-stop` - Stop Docker services
+- `make db-start` - Start only the database
+- `make api-dev` - Run API locally
+- `make api-lint` - Run API lint checks
+- `make api-format` - Format API code
+- `make api-check` - Run API lint + format checks
+- `make web-dev` - Run webapp development server
+- `make web-lint` - Run webapp lint checks
+- `make web-format` - Run webapp formatting
+- `make web-check` - Run webapp checks and typecheck
 
 **Database Operations:**
 - `make db-status` - Check migration status
@@ -265,12 +271,14 @@ The project has been modernized to use sqlx-cli instead of goose. Available comm
 - `make db-mig-create` - Create new migration
 - `make db-prepare-offline` - Prepare offline SQL queries
 
+**Windows without make:**
+- Use the direct commands from Makefile (for example `docker compose up -d database`, `sqlx migrate run`, `cargo sqlx prepare --workspace`, and `cd src/services/webapp && bun install`).
+
 ### Common Development Tasks
 - **New API endpoint**: Modify `src/services/api/src/routes/`
-- **Frontend UI changes**: Work in `src/services/frontend/app/` or `src/services/frontend/components/`
+- **Frontend UI changes**: Work in `src/services/webapp/app/` or `src/services/webapp/components/`
 - **Database changes**: Create new migration `migrations/`
 - **Styling**: Use TailwindCSS classes, extend in `tailwind.config.ts`
-- **Desktop features**: Modify `src/services/desktop/src/` React components
 - **Shared models**: Add to `src/lib/lib-models/`
 - **Utility functions**: Add to `src/lib/lib-utils/`
 - **Database functions**: Add to `src/lib/lib-db/`
@@ -279,4 +287,4 @@ The project has been modernized to use sqlx-cli instead of goose. Available comm
 If you encounter references to older tooling:
 - **goose** → **sqlx-cli** (database migrations)
 - **Go backend** → **Rust backend** (no Go code in current version)
-- Manual dependency installation → `make install-dependencies`
+- Manual dependency installation → `make deps-install`

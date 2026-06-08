@@ -5,7 +5,7 @@ ifneq (,$(wildcard ./.env))
 endif
 
 # Validate system by checking if go, npm, docker and docker compose are installed
-validate-system:
+system-validate:
 	@echo "Validating system..."
 	@if command -v cargo > /dev/null; then \
 					echo "Cargo is installed..."; \
@@ -13,15 +13,15 @@ validate-system:
 					echo "Cargo is not installed..."; \
 					exit 1; \
 			fi
-	@if command -v npm > /dev/null; then \
-					echo "Npm is installed..."; \
+	@if command -v bun > /dev/null; then \
+					echo "Bun is installed..."; \
 			else \
-					echo "Npm is not installed..."; \
+					echo "Bun is not installed..."; \
 					exit 1; \
 			fi \
 
 
-install-dependencies: validate-system
+deps-install: system-validate
 	@echo "Installing dependencies..."
 	# TODO: Have been some problems related to this.
 	# @echo "Installing database dependencies..." && \
@@ -29,21 +29,18 @@ install-dependencies: validate-system
 	@cd src/services/webapp && \
 	echo "Installing webapp dependencies..." && \
 	bun install
-	@echo "Installing github dependencies..." && \
-	npm i -D @actions/github-script@github:actions/github-script
+# 	@echo "Installing github dependencies..." && \
+# 	npm i -D @actions/github-script@github:actions/github-script
 
 ## Running project
 # Start with docker
-start-docker:
+docker-start:
 	@docker compose up --build
 
 # Stop with docker
-stop-docker:
+docker-stop:
 	@docker compose down
 
-# Start just database
-start-database:
-	@docker compose up -d database
 
 # API
 api-dev:
@@ -52,6 +49,7 @@ api-lint:
 	@cargo clippy --bin api
 api-format:
 	@cargo fmt
+api-check: api-lint api-format
 
 # Webapp
 web-dev:
@@ -60,8 +58,13 @@ web-lint:
 	@cd src/services/webapp && bun run lint
 web-format:
 	@cd src/services/webapp && bun run format
+web-check:
+	@cd src/services/webapp && bun run check && bunx tsc --noEmit
 
 ## Database
+# Start just database
+db-start:
+	@docker compose up -d database
 # Check status of database
 db-status:
 	@sqlx migrate info

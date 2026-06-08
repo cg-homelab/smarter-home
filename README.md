@@ -6,33 +6,32 @@ A comprehensive energy monitoring and analytics system that helps homeowners und
 
 Smarter Home provides:
 - **Real-time energy monitoring** with TimescaleDB time-series database
-- **Web dashboard** built with Next.js 15 and modern React components
-- **Desktop application** using Tauri for native performance
+- **Web dashboard** built with Next.js 16 and modern React components
 - **RESTful API** powered by Rust and Axum framework
+- **JWT + session-cookie auth flow** for secure API access
 - **Docker containerization** for easy deployment
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Frontend  │    │ Desktop App     │    │   REST API      │
-│   (Next.js)     │◄──►│   (Tauri)       │◄──►│   (Rust/Axum)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                        │
-                                               ┌─────────────────┐
-                                               │   TimescaleDB   │
-                                               │   (PostgreSQL)  │
-                                               └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐
+│   Web Frontend  │    │   REST API      │
+│   (Next.js)     │◄──►│   (Rust/Axum)   │
+└─────────────────┘    └─────────────────┘
+                              │
+                     ┌─────────────────┐
+                     │   TimescaleDB   │
+                     │   (PostgreSQL)  │
+                     └─────────────────┘
 ```
 
 ### Tech Stack
 
 - **Backend**: Rust + Axum + SQLx + TimescaleDB
-- **Frontend**: Next.js 15 + TypeScript + TailwindCSS + Shadcn UI
-- **Desktop**: Tauri v2 + React + Vite
+- **Frontend**: Next.js 16 + TypeScript + TailwindCSS + Shadcn UI
 - **Database**: TimescaleDB (PostgreSQL with time-series extensions)
 - **Containerization**: Docker + Docker Compose
-- **Authentication**: Auth.js with GitHub OAuth
+- **Authentication**: Backend JWT + httpOnly session cookie
 
 ## 🚀 Quick Start
 
@@ -40,25 +39,64 @@ Smarter Home provides:
 
 Before starting, ensure you have:
 - **Rust** (latest stable) - [Install here](https://rustup.rs/)
-- **Node.js** v18+ with npm - [Install here](https://nodejs.org/)
+- **Node.js** v18+ - [Install here](https://nodejs.org/)
+- **Bun** (latest stable) - [Install here](https://bun.sh)
 - **Docker** with Docker Compose v2 - [Install here](https://docs.docker.com/get-docker/)
+
+### macOS/Linux/Windows setup notes
+
+Use one of these quick setup paths, then continue with the project commands below.
+
+- macOS:
+    - Install Homebrew and run:
+        - `brew install rustup-init node bun`
+        - `brew install --cask docker`
+- Linux:
+    - Install Rust with rustup: `curl https://sh.rustup.rs -sSf | sh`
+    - Install Node.js from your distro package manager or official binary.
+    - Install Bun: `curl -fsSL https://bun.sh/install | bash`
+    - Install Docker Engine and Docker Compose plugin from official Docker docs for your distro.
+- Windows:
+    - Install Rust via rustup installer (MSVC toolchain).
+    - Install Node.js LTS from official installer.
+    - Install Bun using PowerShell installer from bun.sh.
+    - Install Docker Desktop for Windows.
+
+After installation, verify tool availability:
+
+```bash
+make system-validate
+```
+
+On Windows without `make`, use:
+
+```powershell
+cargo --version
+bun --version
+docker --version
+docker compose version
+```
 
 ### 1. Validate System
 
 ```bash
-make validate-system
+make system-validate
 ```
 
 ### 2. Install Dependencies
 
 ```bash
-make install-dependencies
+make deps-install
 ```
 
 This will install:
-- `sqlx-cli` for database operations
-- Frontend npm packages
-- Desktop npm packages
+- Frontend Bun packages
+
+If `sqlx` is not installed yet, install it once with:
+
+```bash
+cargo install sqlx-cli --no-default-features --features rustls,postgres
+```
 
 ### 3. Setup Environment
 
@@ -66,10 +104,14 @@ This will install:
 cp .env.example .env
 ```
 
+**Windows - manually load environtment variables before running app !!!*
+```powershell
+Get-Content .env | Where-Object { $_ -match '=' -and $_ -notmatch '^#' } | ForEach-Object { $name, $value = $_ -split '=', 2; Set-Item "env:$($name.Trim())" $value.Trim() }
+```
 ### 4. Start Database
 
 ```bash
-make start-database
+make db-start
 ```
 
 ### 5. Run Migrations
@@ -82,7 +124,7 @@ make db-up
 
 **Option A: Full Stack with Docker**
 ```bash
-make start-docker
+make docker-start
 ```
 
 **Option B: Individual Services**
@@ -91,10 +133,7 @@ make start-docker
 cargo run --bin api
 
 # Terminal 2: Start Frontend
-cd src/services/frontend && npm run dev
-
-# Terminal 3: Start Desktop (optional)
-make start-desktop
+cd src/services/webapp && bun run dev
 ```
 
 ## 📖 Available Commands
@@ -102,17 +141,23 @@ make start-desktop
 ### System Management
 | Command | Description |
 |---------|-------------|
-| `make validate-system` | Check if all prerequisites are installed |
-| `make install-dependencies` | Install all project dependencies |
+| `make system-validate` | Validate required local tooling for repository commands |
+| `make deps-install` | Install webapp dependencies |
 
 ### Running Services
 | Command | Description |
 |---------|-------------|
-| `make start-docker` | Start full stack with Docker Compose |
-| `make start-database` | Start only the TimescaleDB database |
-| `make start-desktop` | Start desktop app in development mode |
-| `make stop-docker` | Stop all Docker services |
-| `make dev-api` | Run api locally and not through docker |
+| `make docker-start` | Start full stack with Docker Compose |
+| `make docker-stop` | Stop all Docker services |
+| `make db-start` | Start only the TimescaleDB database |
+| `make api-dev` | Run API locally and not through docker |
+| `make api-lint` | Run API lint checks with clippy |
+| `make api-format` | Format Rust code |
+| `make api-check` | Run API lint and format checks |
+| `make web-dev` | Start Next.js development server |
+| `make web-lint` | Run webapp lint checks |
+| `make web-format` | Run webapp formatting |
+| `make web-check` | Run webapp checks and TypeScript typecheck |
 
 ### Database Operations
 | Command | Description |
@@ -124,6 +169,32 @@ make start-desktop
 | `make db-mig-create` | Create a new migration file |
 | `make db-prepare-offline` | Prepare offline SQL query metadata |
 
+### Windows (PowerShell) Equivalents (No make)
+
+Use these commands directly when `make` is not available:
+
+| Make Target | PowerShell Command |
+|---------|-------------|
+| `make system-validate` | `cargo --version; bun --version` |
+| `make deps-install` | `Push-Location src/services/webapp; bun install; Pop-Location` |
+| `make docker-start` | `docker compose up --build` |
+| `make docker-stop` | `docker compose down` |
+| `make db-start` | `docker compose up -d database` |
+| `make api-dev` | `cargo run --bin api` |
+| `make api-lint` | `cargo clippy --bin api` |
+| `make api-format` | `cargo fmt` |
+| `make api-check` | `cargo clippy --bin api; cargo fmt` |
+| `make web-dev` | `Push-Location src/services/webapp; bun run dev; Pop-Location` |
+| `make web-lint` | `Push-Location src/services/webapp; bun run lint; Pop-Location` |
+| `make web-format` | `Push-Location src/services/webapp; bun run format; Pop-Location` |
+| `make web-check` | `Push-Location src/services/webapp; bun run check; bunx tsc --noEmit; Pop-Location` |
+| `make db-status` | `sqlx migrate info` |
+| `make db-up` | `sqlx migrate run` |
+| `make db-down` | `sqlx migrate revert` |
+| `make db-reset` | `sqlx database reset` |
+| `make db-mig-create` | `sqlx migrate add <migration_name>` |
+| `make db-prepare-offline` | `cargo sqlx prepare --workspace` |
+
 ### Development Commands
 ```bash
 # Build everything
@@ -133,16 +204,11 @@ cargo build
 cargo test
 
 # Frontend development
-cd src/services/frontend
-npm run dev        # Development server
-npm run build      # Production build
-npm run lint       # Code linting
-
-# Desktop development
-cd src/services/desktop
-npm run dev        # Development mode
-npm run build      # Build desktop app
-npm run tauri dev  # Run in Tauri dev mode
+cd src/services/webapp
+bun run dev            # Development server
+bun run build          # Production build
+bun run lint           # Code linting
+bunx tsc --noEmit      # Type checking
 ```
 
 ## 🗂️ Project Structure
@@ -150,10 +216,9 @@ npm run tauri dev  # Run in Tauri dev mode
 ```
 smarter-home/
 ├── 📁 src/
-│   ├── 📁 services/api/      # All Project Services
+│   ├── 📁 services/
 │   │   ├── 📁 api/           # Rust backend REST API
-│   │   ├── 📁 frontend/      # Next.js web application
-│   │   └── 📁 desktop/       # Tauri desktop app
+│   │   ├── 📁 webapp/        # Next.js web application
 │   └── 📁 lib/               # Shared Rust libraries
 │       ├── 📁 lib-models/    # Data models
 │       ├── 📁 lib-db/        # Database models and functions
@@ -182,21 +247,24 @@ APP_ENV=local
 
 # Database settings
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/smarter-home
-DB_HOST=localhost
+DB_HOST=database
 DB_PORT=5432
 DB_NAME=smarter-home
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
+DB_SCHEMA=public
 
 # Frontend settings
 FRONTEND_PORT=3000
-NEXTAUTH_URL=http://localhost:3000
 
-# Authentication (get from GitHub OAuth app)
+# Webapp settings
+API_URL=http://localhost:3001
+
+# Auth settings
 AUTH_SECRET=your-secret-key
-AUTH_GITHUB_ID=your-github-client-id
-AUTH_GITHUB_SECRET=your-github-client-secret
 ```
+
+For a full variable-by-variable reference, see `docs/environment-variables.md`.
 
 ### Database URL Notes
 - **Docker development**: Use `database` as hostname
@@ -206,7 +274,7 @@ AUTH_GITHUB_SECRET=your-github-client-secret
 
 ### Development
 ```bash
-make start-docker
+make docker-start
 ```
 
 ### Production
@@ -222,12 +290,12 @@ Services will be available at:
 ## 🔧 Local Development (running app services individually)
 Always ensure the database is running first:
 ```bash
-make start-database
+make db-start
 ```
 Then start services as needed:
 - **API**:
 ```bash
-make dev-api
+make api-dev
 ```
 
 ## 🧪 Testing
@@ -237,16 +305,17 @@ make dev-api
 cargo test
 ```
 
-### Frontend Tests
+### Frontend Validation
 ```bash
-cd src/services/frontend
-npm test
+cd src/services/webapp
+bun run lint
+bunx tsc --noEmit
 ```
 
 ### Integration Tests
 ```bash
 # Start services first
-make start-docker
+make docker-start
 
 # Run your integration tests here
 ```
@@ -260,13 +329,13 @@ make start-docker
 - Check `docker compose ps` for conflicting services
 
 **Database Connection Failed**
-- Ensure database is running: `make start-database`
+- Ensure database is running: `make db-start`
 - Check DATABASE_URL in `.env` file
 - Verify hostname (localhost vs database)
 
 **Frontend Dependencies**
-- npm audit warnings are common and usually safe to ignore
-- Run `npm audit fix` if needed
+- Use `bun install` to refresh frontend dependencies
+- Keep `bun.lock` updated when dependency changes are intentional
 
 **Rust Compilation Issues**
 - Ensure you have the latest stable Rust: `rustup update`
@@ -278,24 +347,19 @@ make start-docker
 - Frontend build: ~30-60 seconds
 - sqlx-cli installation: ~2-3 minutes (first time)
 
+## 📚 Documentation
+
+- Canonical AI agent instructions: `AGENTS.md`
+- Contribution rules: `CONTRIBUTING.md`
+- Community expectations: `CODE_OF_CONDUCT.md`
+- Security policy: `SECURITY.md`
+- Detailed engineering docs: `docs/README.md`
+- Environment variable reference: `docs/environment-variables.md`
+
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Make your changes following the project structure
-4. Test your changes: `make validate-system && cargo test`
-5. Commit and push your changes
-6. Create a Pull Request
-
-### Development Workflow
-
-1. **System validation**: `make validate-system`
-2. **Install dependencies**: `make install-dependencies`
-3. **Start database**: `make start-database`
-4. **Run migrations**: `make db-up`
-5. **Make your changes**
-6. **Test thoroughly**
-7. **Create PR**
+See `CONTRIBUTING.md` for branch naming, PR policy, and validation checklist.
+By participating in this project, you agree to follow `CODE_OF_CONDUCT.md`.
 
 ## 📋 Roadmap
 
