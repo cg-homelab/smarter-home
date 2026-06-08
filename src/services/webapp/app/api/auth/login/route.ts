@@ -1,9 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { API_URL } from '@/lib/config'
-import {
-    decodeTokenPayload,
-    setAuthCookies,
-} from '@/lib/auth-cookies'
+import { decodeTokenPayload, setAuthCookies } from '@/lib/auth-cookies'
 
 interface UpstreamAuthBody {
     accessToken: string

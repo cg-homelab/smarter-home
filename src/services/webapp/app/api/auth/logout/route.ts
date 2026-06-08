@@ -1,10 +1,7 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { API_URL } from '@/lib/config'
-import {
-    REFRESH_COOKIE_NAME,
-    clearAuthCookies,
-} from '@/lib/auth-cookies'
+import { REFRESH_COOKIE_NAME, clearAuthCookies } from '@/lib/auth-cookies'
 
 export async function POST() {
     const cookieStore = await cookies()

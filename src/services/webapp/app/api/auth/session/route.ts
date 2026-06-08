@@ -24,7 +24,11 @@ export async function GET() {
         const payload = decodeTokenPayload(accessToken)
         if (payload) {
             return NextResponse.json({
-                user: { email: payload.sub, role: payload.role, id: payload.id },
+                user: {
+                    email: payload.sub,
+                    role: payload.role,
+                    id: payload.id,
+                },
             })
         }
     }

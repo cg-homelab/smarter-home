@@ -56,7 +56,9 @@ async function fetchWithToken(
     })
 }
 
-async function refreshTokenPair(refreshToken: string): Promise<UpstreamAuthBody | null> {
+async function refreshTokenPair(
+    refreshToken: string,
+): Promise<UpstreamAuthBody | null> {
     const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,7 +101,9 @@ function setCookiesIfPossible(
     }
 }
 
-function clearCookiesIfPossible(cookieStore: Awaited<ReturnType<typeof cookies>>) {
+function clearCookiesIfPossible(
+    cookieStore: Awaited<ReturnType<typeof cookies>>,
+) {
     try {
         cookieStore.delete(ACCESS_COOKIE_NAME)
         cookieStore.delete(REFRESH_COOKIE_NAME)
@@ -159,7 +163,11 @@ export async function apiFetch<T>(
         return handleResponse<T>(initialRes)
     }
 
-    setCookiesIfPossible(cookieStore, refreshed.accessToken, refreshed.refreshToken)
+    setCookiesIfPossible(
+        cookieStore,
+        refreshed.accessToken,
+        refreshed.refreshToken,
+    )
 
     const retryRes = await fetchWithToken(
         path,
