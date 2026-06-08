@@ -38,6 +38,7 @@ Run relevant checks before requesting review:
   - make db-up
   - make db-down (for migration rollback validation)
   - make db-prepare-offline (for lib-db SQL changes)
+  - on Windows without make: sqlx migrate run, sqlx migrate revert, cargo sqlx prepare --workspace
 
 ## Release and CI notes
 

@@ -48,6 +48,7 @@ If a change modifies SQL in src/lib/lib-db:
 
 - run make db-prepare-offline
 - or run cargo sqlx prepare --workspace
+- on Windows without make, use cargo sqlx prepare --workspace
 
 This ensures SQLx compile-time metadata stays valid.
 

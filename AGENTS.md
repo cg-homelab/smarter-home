@@ -37,6 +37,14 @@ If two rules conflict, prefer the rule that is safer for users, data, and produc
   - make db-prepare-offline
   - or cargo sqlx prepare --workspace
 
+### Command execution on Windows
+
+- When make is unavailable (common on Windows), run the underlying shell commands from Makefile directly.
+- Examples:
+  - `make db-start` -> `docker compose up -d database`
+  - `make deps-install` -> `cd src/services/webapp && bun install`
+  - `make db-prepare-offline` -> `cargo sqlx prepare --workspace`
+
 ### API and auth documentation
 
 - New or changed API endpoints in Rust must keep OpenAPI/Utoipa documentation up to date.
@@ -99,9 +107,11 @@ If two rules conflict, prefer the rule that is safer for users, data, and produc
   - cargo clippy --bin api
 - Database query change in lib-db:
   - make db-prepare-offline
+  - or cargo sqlx prepare --workspace
 - Migration change:
   - make db-up
   - make db-down (verify rollback)
+  - or sqlx migrate run and sqlx migrate revert on Windows without make
 
 ## Detailed Guides
 

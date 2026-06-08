@@ -30,10 +30,10 @@ Always ensure these tools are installed before building:
 ### Critical Build Order
 **ALWAYS** follow this exact sequence to avoid build failures:
 
-1. **System Validation**: `make validate-system` 
+1. **System Validation**: `make system-validate` 
 2. **Environment Setup**: Copy `.env.example` to `.env` and configure variables
-3. **Dependencies Installation**: `make install-dependencies`
-4. **Database Setup**: `make start-database` then `make db-up`
+3. **Dependencies Installation**: `make deps-install`
+4. **Database Setup**: `make db-start` then `make db-up`
 5. **Rust Build**: `cargo build` (from repository root)
 
 ### Core Commands
@@ -54,7 +54,7 @@ cargo run --bin api
 ```bash
 cd src/services/webapp
 
-# Install dependencies (automatically done by make install-dependencies)
+# Install dependencies (automatically done by make deps-install)
 bun install
 
 # Development server
@@ -76,7 +76,7 @@ bunx tsc --noEmit
 #### Database Operations (SQLx-based)
 ```bash
 # Start database only
-make start-database
+make db-start
 
 # Check migration status
 make db-status
@@ -100,13 +100,29 @@ make db-prepare-offline
 #### Docker Operations
 ```bash
 # Full stack with Docker
-make start-docker
+make docker-start
 
 # Stop all services
-make stop-docker
+make docker-stop
 
 # Start just database
-make start-database
+make db-start
+```
+
+#### Windows (PowerShell, no make)
+```powershell
+# System validation
+cargo --version
+bun --version
+
+# Install dependencies
+Push-Location src/services/webapp; bun install; Pop-Location
+
+# Start database only
+docker compose up -d database
+
+# Run migrations
+sqlx migrate run
 ```
 
 ### Known Issues and Workarounds
@@ -187,7 +203,7 @@ Reference: `docs/environment-variables.md` contains the variable-by-variable gui
 - **Shadcn UI**: Component library for the frontend
 
 ### Validation Steps
-1. **System Prerequisites**: `make validate-system` should pass
+1. **System Prerequisites**: `make system-validate` should pass
 2. **Database Health**: `docker compose ps` should show healthy database
 3. **API Health**: `cargo build` should complete successfully
 4. **Frontend**: Navigate to `http://localhost:3000` should load dashboard
@@ -218,8 +234,8 @@ Reference: `docs/environment-variables.md` contains the variable-by-variable gui
 
 When working on this repository:
 
-1. **Always start with `make validate-system`** to ensure prerequisites
-2. **Use `make install-dependencies`** to install all required dependencies
+1. **Always start with `make system-validate`** to ensure prerequisites
+2. **Use `make deps-install`** to install all required dependencies
 3. **Copy `.env.example` to `.env`** before any database operations
 4. **Use Docker Compose v2 syntax** (`docker compose`, not `docker-compose`)
 5. **Use exact build order specified above** to prevent failures
@@ -231,13 +247,21 @@ When working on this repository:
 The project has been modernized to use sqlx-cli instead of goose. Available commands:
 
 **System & Dependencies:**
-- `make validate-system` - Check current Makefile prerequisite validations
-- `make install-dependencies` - Install all project dependencies
+- `make system-validate` - Check current Makefile prerequisite validations
+- `make deps-install` - Install webapp dependencies
 
 **Running Services:**
-- `make start-docker` - Start full stack with Docker
-- `make start-database` - Start only the database
-- `make stop-docker` - Stop Docker services
+- `make docker-start` - Start full stack with Docker
+- `make docker-stop` - Stop Docker services
+- `make db-start` - Start only the database
+- `make api-dev` - Run API locally
+- `make api-lint` - Run API lint checks
+- `make api-format` - Format API code
+- `make api-check` - Run API lint + format checks
+- `make web-dev` - Run webapp development server
+- `make web-lint` - Run webapp lint checks
+- `make web-format` - Run webapp formatting
+- `make web-check` - Run webapp checks and typecheck
 
 **Database Operations:**
 - `make db-status` - Check migration status
@@ -246,6 +270,9 @@ The project has been modernized to use sqlx-cli instead of goose. Available comm
 - `make db-reset` - Rollback all migrations
 - `make db-mig-create` - Create new migration
 - `make db-prepare-offline` - Prepare offline SQL queries
+
+**Windows without make:**
+- Use the direct commands from Makefile (for example `docker compose up -d database`, `sqlx migrate run`, `cargo sqlx prepare --workspace`, and `cd src/services/webapp && bun install`).
 
 ### Common Development Tasks
 - **New API endpoint**: Modify `src/services/api/src/routes/`
@@ -260,4 +287,4 @@ The project has been modernized to use sqlx-cli instead of goose. Available comm
 If you encounter references to older tooling:
 - **goose** → **sqlx-cli** (database migrations)
 - **Go backend** → **Rust backend** (no Go code in current version)
-- Manual dependency installation → `make install-dependencies`
+- Manual dependency installation → `make deps-install`

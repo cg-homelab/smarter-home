@@ -65,24 +65,38 @@ Use one of these quick setup paths, then continue with the project commands belo
 After installation, verify tool availability:
 
 ```bash
-make validate-system
+make system-validate
+```
+
+On Windows without `make`, use:
+
+```powershell
+cargo --version
+bun --version
+docker --version
+docker compose version
 ```
 
 ### 1. Validate System
 
 ```bash
-make validate-system
+make system-validate
 ```
 
 ### 2. Install Dependencies
 
 ```bash
-make install-dependencies
+make deps-install
 ```
 
 This will install:
-- `sqlx-cli` for database operations
 - Frontend Bun packages
+
+If `sqlx` is not installed yet, install it once with:
+
+```bash
+cargo install sqlx-cli --no-default-features --features rustls,postgres
+```
 
 ### 3. Setup Environment
 
@@ -93,7 +107,7 @@ cp .env.example .env
 ### 4. Start Database
 
 ```bash
-make start-database
+make db-start
 ```
 
 ### 5. Run Migrations
@@ -106,7 +120,7 @@ make db-up
 
 **Option A: Full Stack with Docker**
 ```bash
-make start-docker
+make docker-start
 ```
 
 **Option B: Individual Services**
@@ -123,16 +137,23 @@ cd src/services/webapp && bun run dev
 ### System Management
 | Command | Description |
 |---------|-------------|
-| `make validate-system` | Check if all prerequisites are installed |
-| `make install-dependencies` | Install all project dependencies |
+| `make system-validate` | Validate required local tooling for repository commands |
+| `make deps-install` | Install webapp dependencies |
 
 ### Running Services
 | Command | Description |
 |---------|-------------|
-| `make start-docker` | Start full stack with Docker Compose |
-| `make start-database` | Start only the TimescaleDB database |
-| `make stop-docker` | Stop all Docker services |
+| `make docker-start` | Start full stack with Docker Compose |
+| `make docker-stop` | Stop all Docker services |
+| `make db-start` | Start only the TimescaleDB database |
 | `make api-dev` | Run API locally and not through docker |
+| `make api-lint` | Run API lint checks with clippy |
+| `make api-format` | Format Rust code |
+| `make api-check` | Run API lint and format checks |
+| `make web-dev` | Start Next.js development server |
+| `make web-lint` | Run webapp lint checks |
+| `make web-format` | Run webapp formatting |
+| `make web-check` | Run webapp checks and TypeScript typecheck |
 
 ### Database Operations
 | Command | Description |
@@ -143,6 +164,32 @@ cd src/services/webapp && bun run dev
 | `make db-reset` | Rollback all migrations |
 | `make db-mig-create` | Create a new migration file |
 | `make db-prepare-offline` | Prepare offline SQL query metadata |
+
+### Windows (PowerShell) Equivalents (No make)
+
+Use these commands directly when `make` is not available:
+
+| Make Target | PowerShell Command |
+|---------|-------------|
+| `make system-validate` | `cargo --version; bun --version` |
+| `make deps-install` | `Push-Location src/services/webapp; bun install; Pop-Location` |
+| `make docker-start` | `docker compose up --build` |
+| `make docker-stop` | `docker compose down` |
+| `make db-start` | `docker compose up -d database` |
+| `make api-dev` | `cargo run --bin api` |
+| `make api-lint` | `cargo clippy --bin api` |
+| `make api-format` | `cargo fmt` |
+| `make api-check` | `cargo clippy --bin api; cargo fmt` |
+| `make web-dev` | `Push-Location src/services/webapp; bun run dev; Pop-Location` |
+| `make web-lint` | `Push-Location src/services/webapp; bun run lint; Pop-Location` |
+| `make web-format` | `Push-Location src/services/webapp; bun run format; Pop-Location` |
+| `make web-check` | `Push-Location src/services/webapp; bun run check; bunx tsc --noEmit; Pop-Location` |
+| `make db-status` | `sqlx migrate info` |
+| `make db-up` | `sqlx migrate run` |
+| `make db-down` | `sqlx migrate revert` |
+| `make db-reset` | `sqlx database reset` |
+| `make db-mig-create` | `sqlx migrate add <migration_name>` |
+| `make db-prepare-offline` | `cargo sqlx prepare --workspace` |
 
 ### Development Commands
 ```bash
@@ -223,7 +270,7 @@ For a full variable-by-variable reference, see `docs/environment-variables.md`.
 
 ### Development
 ```bash
-make start-docker
+make docker-start
 ```
 
 ### Production
@@ -239,7 +286,7 @@ Services will be available at:
 ## 🔧 Local Development (running app services individually)
 Always ensure the database is running first:
 ```bash
-make start-database
+make db-start
 ```
 Then start services as needed:
 - **API**:
@@ -264,7 +311,7 @@ bunx tsc --noEmit
 ### Integration Tests
 ```bash
 # Start services first
-make start-docker
+make docker-start
 
 # Run your integration tests here
 ```
@@ -278,7 +325,7 @@ make start-docker
 - Check `docker compose ps` for conflicting services
 
 **Database Connection Failed**
-- Ensure database is running: `make start-database`
+- Ensure database is running: `make db-start`
 - Check DATABASE_URL in `.env` file
 - Verify hostname (localhost vs database)
 

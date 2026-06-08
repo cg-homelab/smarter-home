@@ -38,6 +38,7 @@ Database:
 - make db-up
 - make db-down (verify rollback)
 - make db-prepare-offline (if SQL changed in src/lib/lib-db)
+- On Windows without make, use: sqlx migrate run, sqlx migrate revert, and cargo sqlx prepare --workspace
 
 ## Additional policy docs
 
