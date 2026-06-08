@@ -1,15 +1,13 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { API_URL } from '@/lib/config'
+import {
+    decodeTokenPayload,
+    setAuthCookies,
+} from '@/lib/auth-cookies'
 
-function decodeTokenPayload(
-    token: string,
-): { sub: string; role: string; id: string | null; exp: number } | null {
-    try {
-        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
-        return JSON.parse(atob(base64))
-    } catch {
-        return null
-    }
+interface UpstreamAuthBody {
+    accessToken: string
+    refreshToken: string
 }
 
 export async function POST(request: NextRequest) {
@@ -34,10 +32,10 @@ export async function POST(request: NextRequest) {
         return new NextResponse(error, { status: upstream.status })
     }
 
-    const data = (await upstream.json()) as { accessToken: string }
+    const data = (await upstream.json()) as UpstreamAuthBody
     const payload = decodeTokenPayload(data.accessToken)
 
-    if (!payload) {
+    if (!payload || !data.refreshToken) {
         return NextResponse.json(
             { message: 'Invalid token received from upstream' },
             { status: 500 },
@@ -48,13 +46,12 @@ export async function POST(request: NextRequest) {
         user: { email: payload.sub, role: payload.role, id: payload.id },
     })
 
-    response.cookies.set('__session', data.accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        expires: new Date(payload.exp * 1000),
-        path: '/',
-    })
+    if (!setAuthCookies(response, data.accessToken, data.refreshToken)) {
+        return NextResponse.json(
+            { message: 'Invalid token received from upstream' },
+            { status: 500 },
+        )
+    }
 
     return response
 }

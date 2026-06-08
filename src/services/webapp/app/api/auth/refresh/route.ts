@@ -2,11 +2,9 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { API_URL } from '@/lib/config'
 import {
-    ACCESS_COOKIE_NAME,
     REFRESH_COOKIE_NAME,
     clearAuthCookies,
     decodeTokenPayload,
-    isAccessTokenExpired,
     setAuthCookies,
 } from '@/lib/auth-cookies'
 
@@ -15,22 +13,15 @@ interface UpstreamAuthBody {
     refreshToken: string
 }
 
-export async function GET() {
+export async function POST() {
     const cookieStore = await cookies()
-    const accessToken = cookieStore.get(ACCESS_COOKIE_NAME)?.value
     const refreshToken = cookieStore.get(REFRESH_COOKIE_NAME)?.value
 
-    if (accessToken && !isAccessTokenExpired(accessToken)) {
-        const payload = decodeTokenPayload(accessToken)
-        if (payload) {
-            return NextResponse.json({
-                user: { email: payload.sub, role: payload.role, id: payload.id },
-            })
-        }
-    }
-
     if (!refreshToken) {
-        const response = NextResponse.json({ user: null })
+        const response = NextResponse.json(
+            { message: 'Missing refresh token' },
+            { status: 401 },
+        )
         clearAuthCookies(response)
         return response
     }
@@ -43,7 +34,10 @@ export async function GET() {
     })
 
     if (!upstream.ok) {
-        const response = NextResponse.json({ user: null })
+        const response = NextResponse.json(
+            { message: 'Unable to refresh token' },
+            { status: upstream.status },
+        )
         clearAuthCookies(response)
         return response
     }
@@ -52,7 +46,10 @@ export async function GET() {
     const payload = decodeTokenPayload(data.accessToken)
 
     if (!payload || !data.refreshToken) {
-        const response = NextResponse.json({ user: null })
+        const response = NextResponse.json(
+            { message: 'Invalid token received from upstream' },
+            { status: 500 },
+        )
         clearAuthCookies(response)
         return response
     }
@@ -62,7 +59,10 @@ export async function GET() {
     })
 
     if (!setAuthCookies(response, data.accessToken, data.refreshToken)) {
-        const invalidResponse = NextResponse.json({ user: null })
+        const invalidResponse = NextResponse.json(
+            { message: 'Invalid token received from upstream' },
+            { status: 500 },
+        )
         clearAuthCookies(invalidResponse)
         return invalidResponse
     }

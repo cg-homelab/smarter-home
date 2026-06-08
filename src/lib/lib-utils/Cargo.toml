@@ -17,6 +17,7 @@ axum = { workspace = true }
 axum-extra = { workspace = true }
 tracing = { workspace = true }
 once_cell = { workspace = true }
+sha2 = { workspace = true }
 
 # external crates from crates.io
 argon2 = "^0.5"

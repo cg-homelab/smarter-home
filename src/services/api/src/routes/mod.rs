@@ -25,6 +25,8 @@ pub mod user;
         // Auth
         auth::log_in,
         auth::sign_up,
+        auth::refresh_token,
+        auth::log_out,
         // User
         user::get_me,
         // Home
@@ -55,6 +57,8 @@ pub fn create_router(db: lib_db::Db) -> axum::Router {
     let auth_routes: axum::Router = axum::Router::new()
         .route("/auth/login", post(auth::log_in))
         .route("/auth/signup", post(auth::sign_up))
+        .route("/auth/refresh", post(auth::refresh_token))
+        .route("/auth/logout", post(auth::log_out))
         .with_state(app_state.clone());
 
     let user_routes: axum::Router = axum::Router::new()

@@ -7,6 +7,7 @@ use std::time::Duration;
 pub mod config;
 pub mod home;
 pub mod power;
+pub mod refresh_token;
 pub mod user;
 
 /// Db struct representing the database connection pool

@@ -33,3 +33,4 @@ utoipa = { version = "^5.4", features = ["uuid", "chrono"] }
 thiserror = "^2.0"
 anyhow = "^1"
 once_cell = "^1.21"
+sha2 = "^0.10"

@@ -11,24 +11,47 @@ use utoipa::ToSchema;
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthBody {
-    message: String,
-    access_token: String,
-    token_type: String,
+    pub message: String,
+    pub access_token: String,
+    pub refresh_token: String,
+    pub token_type: String,
+    pub expires_in: usize,
 }
 impl AuthBody {
     /// Creates a new AuthBody
     /// # Arguments
     /// * `access_token` - Access token
+    /// * `refresh_token` - Refresh token
+    /// * `expires_in` - Access token expiration time in seconds
     /// * `message` - Message
     /// # Returns
     /// * `AuthBody` - New AuthBody
-    pub fn new(access_token: String, message: String) -> Self {
+    pub fn new(
+        access_token: String,
+        refresh_token: String,
+        expires_in: usize,
+        message: String,
+    ) -> Self {
         Self {
             message,
-            access_token: access_token.clone(),
+            access_token,
+            refresh_token,
             token_type: "Bearer".to_string(),
+            expires_in,
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RefreshTokenRequest {
+    pub refresh_token: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct LogoutRequest {
+    pub refresh_token: String,
 }
 
 // TODO: Implement this instead of AuthUser for more generic OAuth2-style authentication
