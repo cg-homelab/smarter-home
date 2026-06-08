@@ -104,6 +104,10 @@ cargo install sqlx-cli --no-default-features --features rustls,postgres
 cp .env.example .env
 ```
 
+**Windows - manually load environtment variables before running app !!!*
+```powershell
+Get-Content .env | Where-Object { $_ -match '=' -and $_ -notmatch '^#' } | ForEach-Object { $name, $value = $_ -split '=', 2; Set-Item "env:$($name.Trim())" $value.Trim() }
+```
 ### 4. Start Database
 
 ```bash
