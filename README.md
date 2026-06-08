@@ -351,12 +351,14 @@ make docker-start
 
 - Canonical AI agent instructions: `AGENTS.md`
 - Contribution rules: `CONTRIBUTING.md`
+- Community expectations: `CODE_OF_CONDUCT.md`
 - Detailed engineering docs: `docs/README.md`
 - Environment variable reference: `docs/environment-variables.md`
 
 ## 🤝 Contributing
 
 See `CONTRIBUTING.md` for branch naming, PR policy, and validation checklist.
+By participating in this project, you agree to follow `CODE_OF_CONDUCT.md`.
 
 ## 📋 Roadmap
 
