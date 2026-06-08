@@ -57,6 +57,14 @@ Copy .env.example to .env before local development.
   - Purpose: backend JWT signing/verification secret.
   - Used in: src/lib/lib-utils/src/crypto.rs
   - Required for non-default secure environments.
+- AUTH_ACCESS_TTL_SECS:
+  - Purpose: access token lifetime in seconds.
+  - Default: 900 (15 minutes).
+  - Used in: src/lib/lib-utils/src/crypto.rs.
+- AUTH_REFRESH_TTL_SECS:
+  - Purpose: refresh token lifetime in seconds.
+  - Default: 2592000 (30 days).
+  - Used in: backend refresh token expiration and webapp refresh-cookie expiration.
 
 ## Removed/deprecated variables
 
