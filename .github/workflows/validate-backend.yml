@@ -1,0 +1,57 @@
+name: validate-backend
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**/*.rs"
+      - "**/Cargo.toml"
+      - "Cargo.lock"
+      - "migrations/**"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-and-test-rust:
+    name: Unit test rust
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: setup toolchain
+        uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: nightly
+          components: clippy
+
+      - name: cargo test
+        id: cargo-test
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p test-results
+          cargo install cargo2junit
+          RUSTC_BOOTSTRAP=1 cargo test -- -Z unstable-options --format json --report-time | cargo2junit > ./test-results/results.xml
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@main
+        if: always()
+        with:
+          check_name: Test Report Rust
+          include_passed: true
+          fail_on_failure: true
+          require_tests: true
+          comment: true
+          detailed_summary: true
+          report_paths: "**/test-results/*.xml"
+
+      - name: clippy
+        id: cargo-clippy
+        run: bash ./workflow-helpers/clippy-helper.sh
