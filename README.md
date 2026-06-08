@@ -352,6 +352,7 @@ make docker-start
 - Canonical AI agent instructions: `AGENTS.md`
 - Contribution rules: `CONTRIBUTING.md`
 - Community expectations: `CODE_OF_CONDUCT.md`
+- Security policy: `SECURITY.md`
 - Detailed engineering docs: `docs/README.md`
 - Environment variable reference: `docs/environment-variables.md`
 
