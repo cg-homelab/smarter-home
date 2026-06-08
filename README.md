@@ -6,33 +6,32 @@ A comprehensive energy monitoring and analytics system that helps homeowners und
 
 Smarter Home provides:
 - **Real-time energy monitoring** with TimescaleDB time-series database
-- **Web dashboard** built with Next.js 15 and modern React components
-- **Desktop application** using Tauri for native performance
+- **Web dashboard** built with Next.js 16 and modern React components
 - **RESTful API** powered by Rust and Axum framework
+- **JWT + session-cookie auth flow** for secure API access
 - **Docker containerization** for easy deployment
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Frontend  │    │ Desktop App     │    │   REST API      │
-│   (Next.js)     │◄──►│   (Tauri)       │◄──►│   (Rust/Axum)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                        │
-                                               ┌─────────────────┐
-                                               │   TimescaleDB   │
-                                               │   (PostgreSQL)  │
-                                               └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐
+│   Web Frontend  │    │   REST API      │
+│   (Next.js)     │◄──►│   (Rust/Axum)   │
+└─────────────────┘    └─────────────────┘
+                              │
+                     ┌─────────────────┐
+                     │   TimescaleDB   │
+                     │   (PostgreSQL)  │
+                     └─────────────────┘
 ```
 
 ### Tech Stack
 
 - **Backend**: Rust + Axum + SQLx + TimescaleDB
-- **Frontend**: Next.js 15 + TypeScript + TailwindCSS + Shadcn UI
-- **Desktop**: Tauri v2 + React + Vite
+- **Frontend**: Next.js 16 + TypeScript + TailwindCSS + Shadcn UI
 - **Database**: TimescaleDB (PostgreSQL with time-series extensions)
 - **Containerization**: Docker + Docker Compose
-- **Authentication**: Auth.js with GitHub OAuth
+- **Authentication**: Backend JWT + httpOnly session cookie
 
 ## 🚀 Quick Start
 
@@ -40,8 +39,34 @@ Smarter Home provides:
 
 Before starting, ensure you have:
 - **Rust** (latest stable) - [Install here](https://rustup.rs/)
-- **Node.js** v18+ with npm - [Install here](https://nodejs.org/)
+- **Node.js** v18+ - [Install here](https://nodejs.org/)
+- **Bun** (latest stable) - [Install here](https://bun.sh)
 - **Docker** with Docker Compose v2 - [Install here](https://docs.docker.com/get-docker/)
+
+### macOS/Linux/Windows setup notes
+
+Use one of these quick setup paths, then continue with the project commands below.
+
+- macOS:
+    - Install Homebrew and run:
+        - `brew install rustup-init node bun`
+        - `brew install --cask docker`
+- Linux:
+    - Install Rust with rustup: `curl https://sh.rustup.rs -sSf | sh`
+    - Install Node.js from your distro package manager or official binary.
+    - Install Bun: `curl -fsSL https://bun.sh/install | bash`
+    - Install Docker Engine and Docker Compose plugin from official Docker docs for your distro.
+- Windows:
+    - Install Rust via rustup installer (MSVC toolchain).
+    - Install Node.js LTS from official installer.
+    - Install Bun using PowerShell installer from bun.sh.
+    - Install Docker Desktop for Windows.
+
+After installation, verify tool availability:
+
+```bash
+make validate-system
+```
 
 ### 1. Validate System
 
@@ -57,8 +82,7 @@ make install-dependencies
 
 This will install:
 - `sqlx-cli` for database operations
-- Frontend npm packages
-- Desktop npm packages
+- Frontend Bun packages
 
 ### 3. Setup Environment
 
@@ -91,10 +115,7 @@ make start-docker
 cargo run --bin api
 
 # Terminal 2: Start Frontend
-cd src/services/frontend && npm run dev
-
-# Terminal 3: Start Desktop (optional)
-make start-desktop
+cd src/services/webapp && bun run dev
 ```
 
 ## 📖 Available Commands
@@ -110,9 +131,8 @@ make start-desktop
 |---------|-------------|
 | `make start-docker` | Start full stack with Docker Compose |
 | `make start-database` | Start only the TimescaleDB database |
-| `make start-desktop` | Start desktop app in development mode |
 | `make stop-docker` | Stop all Docker services |
-| `make dev-api` | Run api locally and not through docker |
+| `make api-dev` | Run API locally and not through docker |
 
 ### Database Operations
 | Command | Description |
@@ -133,16 +153,11 @@ cargo build
 cargo test
 
 # Frontend development
-cd src/services/frontend
-npm run dev        # Development server
-npm run build      # Production build
-npm run lint       # Code linting
-
-# Desktop development
-cd src/services/desktop
-npm run dev        # Development mode
-npm run build      # Build desktop app
-npm run tauri dev  # Run in Tauri dev mode
+cd src/services/webapp
+bun run dev            # Development server
+bun run build          # Production build
+bun run lint           # Code linting
+bunx tsc --noEmit      # Type checking
 ```
 
 ## 🗂️ Project Structure
@@ -150,10 +165,9 @@ npm run tauri dev  # Run in Tauri dev mode
 ```
 smarter-home/
 ├── 📁 src/
-│   ├── 📁 services/api/      # All Project Services
+│   ├── 📁 services/
 │   │   ├── 📁 api/           # Rust backend REST API
-│   │   ├── 📁 frontend/      # Next.js web application
-│   │   └── 📁 desktop/       # Tauri desktop app
+│   │   ├── 📁 webapp/        # Next.js web application
 │   └── 📁 lib/               # Shared Rust libraries
 │       ├── 📁 lib-models/    # Data models
 │       ├── 📁 lib-db/        # Database models and functions
@@ -182,21 +196,24 @@ APP_ENV=local
 
 # Database settings
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/smarter-home
-DB_HOST=localhost
+DB_HOST=database
 DB_PORT=5432
 DB_NAME=smarter-home
 DB_USERNAME=postgres
 DB_PASSWORD=postgres
+DB_SCHEMA=public
 
 # Frontend settings
 FRONTEND_PORT=3000
-NEXTAUTH_URL=http://localhost:3000
 
-# Authentication (get from GitHub OAuth app)
+# Webapp settings
+API_URL=http://localhost:3001
+
+# Auth settings
 AUTH_SECRET=your-secret-key
-AUTH_GITHUB_ID=your-github-client-id
-AUTH_GITHUB_SECRET=your-github-client-secret
 ```
+
+For a full variable-by-variable reference, see `docs/environment-variables.md`.
 
 ### Database URL Notes
 - **Docker development**: Use `database` as hostname
@@ -227,7 +244,7 @@ make start-database
 Then start services as needed:
 - **API**:
 ```bash
-make dev-api
+make api-dev
 ```
 
 ## 🧪 Testing
@@ -237,10 +254,11 @@ make dev-api
 cargo test
 ```
 
-### Frontend Tests
+### Frontend Validation
 ```bash
-cd src/services/frontend
-npm test
+cd src/services/webapp
+bun run lint
+bunx tsc --noEmit
 ```
 
 ### Integration Tests
@@ -265,8 +283,8 @@ make start-docker
 - Verify hostname (localhost vs database)
 
 **Frontend Dependencies**
-- npm audit warnings are common and usually safe to ignore
-- Run `npm audit fix` if needed
+- Use `bun install` to refresh frontend dependencies
+- Keep `bun.lock` updated when dependency changes are intentional
 
 **Rust Compilation Issues**
 - Ensure you have the latest stable Rust: `rustup update`
@@ -278,24 +296,16 @@ make start-docker
 - Frontend build: ~30-60 seconds
 - sqlx-cli installation: ~2-3 minutes (first time)
 
+## 📚 Documentation
+
+- Canonical AI agent instructions: `AGENTS.md`
+- Contribution rules: `CONTRIBUTING.md`
+- Detailed engineering docs: `docs/README.md`
+- Environment variable reference: `docs/environment-variables.md`
+
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Make your changes following the project structure
-4. Test your changes: `make validate-system && cargo test`
-5. Commit and push your changes
-6. Create a Pull Request
-
-### Development Workflow
-
-1. **System validation**: `make validate-system`
-2. **Install dependencies**: `make install-dependencies`
-3. **Start database**: `make start-database`
-4. **Run migrations**: `make db-up`
-5. **Make your changes**
-6. **Test thoroughly**
-7. **Create PR**
+See `CONTRIBUTING.md` for branch naming, PR policy, and validation checklist.
 
 ## 📋 Roadmap
 
