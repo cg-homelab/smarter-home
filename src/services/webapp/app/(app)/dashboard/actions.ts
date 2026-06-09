@@ -87,7 +87,7 @@ export async function getDashboardData(): Promise<{
         }
 
         const endDate = new Date()
-        const startDate = new Date(endDate.getTime() - 30 * 60 * 1000)
+        const startDate = new Date(endDate.getTime() - 2 * 60 * 60 * 1000) //2 hours ago
 
         const params = new URLSearchParams({
             home_id: home.id,
