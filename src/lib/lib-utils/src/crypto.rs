@@ -12,8 +12,12 @@ use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, 
 use lib_models::{error::Error, HashedPassword, Role};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
+
+const DEFAULT_ACCESS_TTL_SECS: usize = 15 * 60;
+const DEFAULT_REFRESH_TTL_SECS: i64 = 30 * 24 * 60 * 60;
 
 /// Static KEYS instance to hold encoding and decoding keys
 static KEYS: Lazy<Keys> = Lazy::new(|| {
@@ -132,6 +136,33 @@ pub fn generate_base64_token() -> String {
     BASE64_URL_SAFE_NO_PAD.encode(&random_bytes)
 }
 
+fn read_env_usize(name: &str, default: usize) -> usize {
+    std::env::var(name)
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(default)
+}
+
+pub fn access_token_ttl_secs() -> usize {
+    read_env_usize("AUTH_ACCESS_TTL_SECS", DEFAULT_ACCESS_TTL_SECS)
+}
+
+pub fn refresh_token_ttl_secs() -> i64 {
+    read_env_usize("AUTH_REFRESH_TTL_SECS", DEFAULT_REFRESH_TTL_SECS as usize) as i64
+}
+
+pub fn generate_refresh_token() -> String {
+    let mut random_bytes = Uuid::new_v4().as_bytes().to_vec();
+    random_bytes.extend_from_slice(Uuid::new_v4().as_bytes());
+    BASE64_URL_SAFE_NO_PAD.encode(&random_bytes)
+}
+
+pub fn hash_refresh_token(token: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(token.as_bytes());
+    format!("{:x}", hasher.finalize())
+}
+
 /// Function to generate a JWT
 /// # Arguments
 /// * `sub` - The subject (user ID or username) to include in the JWT
@@ -152,7 +183,7 @@ pub fn generate_jwt(sub: String, role: Role, id: Option<Uuid>, indefenant: bool)
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs() as usize
-                + 3600 * 12 // 1 hour expiration
+                + access_token_ttl_secs()
         }
     };
     // let encoding_key = EncodingKey::from_secret(KEYS.as_bytes());

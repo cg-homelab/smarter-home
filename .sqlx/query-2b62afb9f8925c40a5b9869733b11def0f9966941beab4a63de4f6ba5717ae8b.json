@@ -6,67 +6,145 @@
       {
         "ordinal": 0,
         "name": "home_id",
-        "type_info": "Uuid"
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "home_id"
+          }
+        }
       },
       {
         "ordinal": 1,
         "name": "ts",
-        "type_info": "Timestamptz"
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "ts"
+          }
+        }
       },
       {
         "ordinal": 2,
         "name": "price",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "price"
+          }
+        }
       },
       {
         "ordinal": 3,
         "name": "power",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "power"
+          }
+        }
       },
       {
         "ordinal": 4,
         "name": "solar_power",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "solar_power"
+          }
+        }
       },
       {
         "ordinal": 5,
         "name": "last_meter_consumption",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "last_meter_consumption"
+          }
+        }
       },
       {
         "ordinal": 6,
         "name": "last_meter_production",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "last_meter_production"
+          }
+        }
       },
       {
         "ordinal": 7,
         "name": "last_solar_total",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "last_solar_total"
+          }
+        }
       },
       {
         "ordinal": 8,
         "name": "consumption_since_midnight",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "consumption_since_midnight"
+          }
+        }
       },
       {
         "ordinal": 9,
         "name": "production_since_midnight",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "production_since_midnight"
+          }
+        }
       },
       {
         "ordinal": 10,
         "name": "solar_since_midnight",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "solar_since_midnight"
+          }
+        }
       },
       {
         "ordinal": 11,
         "name": "cost_since_midnight",
-        "type_info": "Float8"
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "cost_since_midnight"
+          }
+        }
       },
       {
         "ordinal": 12,
         "name": "currency",
-        "type_info": "Varchar"
+        "type_info": "Varchar",
+        "origin": {
+          "Table": {
+            "table": "power_metrics",
+            "name": "currency"
+          }
+        }
       }
     ],
     "parameters": {

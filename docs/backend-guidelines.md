@@ -30,6 +30,14 @@ Scope: Rust backend and shared Rust libraries.
 - API handlers should include Utoipa annotations.
 - New endpoints must be registered in OpenAPI aggregation.
 - Keep request and response types accurate in docs.
+- Auth endpoint changes must keep docs/auth.md synchronized (login/signup/refresh/logout contracts).
+
+## Auth endpoint behavior
+
+- Access tokens should remain short-lived and signed with AUTH_SECRET.
+- Refresh tokens should be persisted hashed in the database.
+- Refresh flow should rotate refresh tokens on every successful refresh.
+- Logout should revoke active refresh token(s) and not rely on client-side cookie deletion alone.
 
 ## Code quality gates
 

@@ -8,7 +8,7 @@ Smarter Home provides:
 - **Real-time energy monitoring** with TimescaleDB time-series database
 - **Web dashboard** built with Next.js 16 and modern React components
 - **RESTful API** powered by Rust and Axum framework
-- **JWT + session-cookie auth flow** for secure API access
+- **JWT + rotating refresh token flow** for secure API access
 - **Docker containerization** for easy deployment
 
 ## 🏗️ Architecture
@@ -31,7 +31,7 @@ Smarter Home provides:
 - **Frontend**: Next.js 16 + TypeScript + TailwindCSS + Shadcn UI
 - **Database**: TimescaleDB (PostgreSQL with time-series extensions)
 - **Containerization**: Docker + Docker Compose
-- **Authentication**: Backend JWT + httpOnly session cookie
+- **Authentication**: Backend JWT access token + rotating refresh token in httpOnly cookies
 
 ## 🚀 Quick Start
 
@@ -262,6 +262,8 @@ API_URL=http://localhost:3001
 
 # Auth settings
 AUTH_SECRET=your-secret-key
+AUTH_ACCESS_TTL_SECS=900
+AUTH_REFRESH_TTL_SECS=2592000
 ```
 
 For a full variable-by-variable reference, see `docs/environment-variables.md`.
