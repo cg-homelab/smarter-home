@@ -59,6 +59,13 @@ export async function getMockDashboardData(): Promise<{
         id: 'mock-home-id',
         name: 'Mock Home',
         address: '1 Example Street',
+        location: {
+            latitude: 59.9139,
+            longitude: 10.7522,
+        },
+        locationHashHigh: '860999387ffffff',
+        locationHashMedium: '830999fffffffff',
+        locationHashLow: '8109bffffffffff',
         writeToken: 'mock-token',
         isFavorite: true,
     }

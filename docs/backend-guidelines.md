@@ -32,6 +32,28 @@ Scope: Rust backend and shared Rust libraries.
 - Keep request and response types accurate in docs.
 - Auth endpoint changes must keep docs/auth.md synchronized (login/signup/refresh/logout contracts).
 
+### Home payload contract
+
+- Home create/update payloads require nested location fields:
+  - `location.latitude`
+  - `location.longitude`
+- Home responses include generated location hashes:
+  - `locationHashHigh`
+  - `locationHashMedium`
+  - `locationHashLow`
+- Hashes are generated server-side from the provided coordinates using shared H3 resolution constants in `lib-utils`.
+
+## Home payload contract
+
+- Home create/update payloads use nested coordinates:
+  - location.latitude
+  - location.longitude
+- Home responses include generated spatial hashes:
+  - locationHashHigh
+  - locationHashMedium
+  - locationHashLow
+- Spatial hashes are generated server-side from the submitted coordinates using shared H3 resolution constants in lib-utils.
+
 ## Auth endpoint behavior
 
 - Access tokens should remain short-lived and signed with AUTH_SECRET.
