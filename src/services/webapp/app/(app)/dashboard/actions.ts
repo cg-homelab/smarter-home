@@ -59,6 +59,13 @@ export async function getMockDashboardData(): Promise<{
         id: 'mock-home-id',
         name: 'Mock Home',
         address: '1 Example Street',
+        location: {
+            latitude: 59.9139,
+            longitude: 10.7522,
+        },
+        locationHashHigh: '860999387ffffff',
+        locationHashMedium: '830999fffffffff',
+        locationHashLow: '8109bffffffffff',
         writeToken: 'mock-token',
         isFavorite: true,
     }
@@ -80,7 +87,7 @@ export async function getDashboardData(): Promise<{
         }
 
         const endDate = new Date()
-        const startDate = new Date(endDate.getTime() - 30 * 60 * 1000)
+        const startDate = new Date(endDate.getTime() - 2 * 60 * 60 * 1000) //2 hours ago
 
         const params = new URLSearchParams({
             home_id: home.id,
