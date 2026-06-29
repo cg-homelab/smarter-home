@@ -11,6 +11,70 @@ use thiserror::Error;
 use tokio::sync::mpsc::error::TrySendError;
 use utoipa::ToSchema;
 
+/// Error type returned by spatial hashing helpers.
+#[derive(Debug, Error)]
+pub enum SpatialHashError {
+    /// Latitude/longitude pair could not be converted into a valid H3 coordinate.
+    #[error("invalid latitude/longitude: lat={lat}, lng={lng}")]
+    InvalidLatLng { lat: f64, lng: f64 },
+
+    /// H3 resolution must be in the range [0, 15].
+    #[error("invalid H3 resolution {resolution}; expected 0..=15")]
+    InvalidResolution { resolution: u8 },
+
+    /// Provided H3 cell string cannot be parsed.
+    #[error("invalid H3 cell index: {cell}")]
+    InvalidCell { cell: String },
+
+    /// Provided H3 numeric index cannot be parsed.
+    #[error("invalid H3 cell index from u64: {index}")]
+    InvalidCellU64 { index: u64 },
+
+    /// Requested parent resolution must be coarser than or equal to the cell resolution.
+    #[error(
+        "invalid parent resolution {parent_resolution}; cell has resolution {cell_resolution}"
+    )]
+    InvalidParentResolution {
+        parent_resolution: u8,
+        cell_resolution: u8,
+    },
+
+    /// Requested child resolution must be finer than or equal to the cell resolution.
+    #[error("invalid child resolution {child_resolution}; cell has resolution {cell_resolution}")]
+    InvalidChildResolution {
+        child_resolution: u8,
+        cell_resolution: u8,
+    },
+
+    /// Grid distance failed due to H3 constraints (for example pentagon distortion or mismatch).
+    #[error("failed to compute grid distance: {details}")]
+    GridDistance { details: String },
+
+    /// GeoJSON payload could not be parsed.
+    #[error("invalid GeoJSON payload: {details}")]
+    InvalidGeoJson { details: String },
+
+    /// GeoJSON geometry type is unsupported by polygon coverage.
+    #[error("unsupported GeoJSON geometry type: {geometry_type}")]
+    UnsupportedGeoJsonGeometry { geometry_type: String },
+
+    /// GeoJSON ring coordinate is invalid.
+    #[error("invalid GeoJSON coordinate at index {index}: {details}")]
+    InvalidGeoJsonCoordinate { index: usize, details: String },
+
+    /// GeoJSON contains no polygon/multipolygon geometry to cover.
+    #[error("GeoJSON does not contain polygon geometries")]
+    MissingPolygonGeometry,
+
+    /// Polygon geometry is invalid for H3 tiling.
+    #[error("invalid polygon geometry for tiling: {details}")]
+    InvalidGeometry { details: String },
+
+    /// Async batch worker could not be joined.
+    #[error("failed to join async batch task: {details}")]
+    AsyncBatchJoin { details: String },
+}
+
 /// Custom error type for the application
 /// # Variants
 /// * `InternalServerError` - Internal server error
@@ -25,6 +89,7 @@ use utoipa::ToSchema;
 /// * `CryptoHashError` - Crypto hash error
 /// * `Conflict` - Conflict error with message
 /// * `InvalidToken` - Invalid bearer token
+/// * `SpatialHash` - Spatial hashing error with details
 #[derive(Error, Debug, ToSchema)]
 pub enum Error {
     #[error("Internal Server Error")]
@@ -65,6 +130,9 @@ pub enum Error {
 
     #[error("Forbidden")]
     Forbidden,
+
+    #[error("spatial hash error: {0}")]
+    SpatialHash(String),
 }
 /// Implement IntoResponse for Error to convert it into an HTTP response
 impl IntoResponse for Error {
@@ -86,8 +154,16 @@ impl IntoResponse for Error {
             Error::Conflict(_) => StatusCode::CONFLICT,
             Error::InvalidToken => StatusCode::UNAUTHORIZED,
             Error::Forbidden => StatusCode::FORBIDDEN,
+            Error::SpatialHash(_) => StatusCode::BAD_REQUEST,
         };
         (status, Json(self.to_string())).into_response()
+    }
+}
+
+impl From<SpatialHashError> for Error {
+    /// Convert a SpatialHashError into the shared application Error type.
+    fn from(error: SpatialHashError) -> Self {
+        Self::SpatialHash(error.to_string())
     }
 }
 
@@ -136,3 +212,21 @@ impl<T> From<TrySendError<T>> for Error {
 // }
 
 // }
+
+#[cfg(test)]
+mod tests {
+    use super::{Error, SpatialHashError};
+
+    #[test]
+    fn spatial_hash_error_converts_into_error() {
+        let source = SpatialHashError::InvalidResolution { resolution: 99 };
+        let converted: Error = source.into();
+
+        match converted {
+            Error::SpatialHash(message) => {
+                assert!(message.contains("invalid H3 resolution"));
+            }
+            other => panic!("unexpected converted error variant: {other}"),
+        }
+    }
+}
