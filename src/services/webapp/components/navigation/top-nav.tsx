@@ -26,6 +26,14 @@ export function TopNavigation() {
                     </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
+                    <NavigationMenuLink
+                        asChild
+                        active={pathname === '/integrations'}
+                    >
+                        <Link href="/integrations">Integrations</Link>
+                    </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
                     <NavigationMenuLink asChild active={pathname === '/about'}>
                         <Link href="/about">About</Link>
                     </NavigationMenuLink>

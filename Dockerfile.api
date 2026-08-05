@@ -1,42 +1,69 @@
 # syntax=docker/dockerfile:1
 
-#Set up build stage
-FROM rust:alpine AS build
+ARG RUST_VERSION=1.96
+ARG DEBIAN_SUITE=trixie
 
-# Install musl since glibc is not available in the slim image 
-# musl-tools musl-dev
-RUN apk add --no-cache openssl-dev
-RUN apk add --no-cache alpine-sdk
-RUN apk add --no-cache openssl-libs-static
-
-# Create a non-privileged user that the app will run under.
-RUN adduser \
-  --disabled-password \
-  --gecos "" \
-  --home "/nonexistent" \
-  --shell "/sbin/nologin" \
-  --no-create-home \
-  --uid 10001 \
-  "smarterhome"
-
+# ============================================
+# Stage 1: cargo-chef base
+# ============================================
+# The prebuilt cargo-chef image avoids a ~1 minute `cargo install cargo-chef`
+# on every cold build. rust:slim already ships gcc and libc6-dev, and nothing
+# in this workspace needs cmake, perl or openssl, so no extra apt packages.
+FROM lukemathwalker/cargo-chef:latest-rust-${RUST_VERSION}-slim-${DEBIAN_SUITE} AS chef
 WORKDIR /app
 
-# Copy source code
+# ============================================
+# Stage 2: Compute the dependency recipe
+# ============================================
+# The recipe only changes when Cargo.toml / Cargo.lock change, which is what
+# lets the cook stage below stay cached across ordinary source edits.
+FROM chef AS planner
 COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-RUN cargo build --release --bin api
+# ============================================
+# Stage 3: Build the API binary
+# ============================================
+FROM chef AS builder
 
-# Create stage for finished image
-FROM rust:alpine AS prod
-RUN apk add --no-cache openssl
-RUN apk add --no-cache openssl-libs-static
+# The sqlx query! macros resolve against the committed .sqlx/ cache. Set this
+# explicitly so the build fails loudly rather than attempting a live database
+# connection if DATABASE_URL ever leaks into the build environment.
+ENV SQLX_OFFLINE=true
 
-COPY --from=build /etc/passwd /etc/passwd
-COPY --from=build /etc/group /etc/group
+COPY --from=planner /app/recipe.json recipe.json
+
+# Dependencies compile into this image layer, not into a cache mount, so the
+# result is reusable by a registry cache in CI as well as locally. The registry
+# mount only caches crate downloads.
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    cargo chef cook --release --recipe-path recipe.json
+
+# Only this layer rebuilds when application source changes.
+COPY . .
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    cargo build --release --locked --bin api
+
+# ============================================
+# Stage 4: Runtime
+# ============================================
+FROM debian:${DEBIAN_SUITE}-slim AS prod
+
+# ca-certificates for outbound TLS, curl for the healthcheck below (debian-slim
+# ships neither curl nor wget).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a non-privileged user that the app will run under.
+RUN groupadd --system --gid 10001 smarterhome \
+    && useradd --system --uid 10001 --gid smarterhome \
+    --no-create-home --shell /usr/sbin/nologin smarterhome
+
+WORKDIR /app
+COPY --from=builder --chown=smarterhome:smarterhome /app/target/release/api /app/api
 
 USER smarterhome:smarterhome
-
-COPY --from=build --chown=smarterhome:smarterhome /app/target/release/api /app/api
 
 # Metadata
 LABEL maintainer="Martin Ellegard"
@@ -45,4 +72,7 @@ LABEL repository="https://github.com/cg-homelab/smarter-home"
 # Expose the port that the application listens on.
 EXPOSE 3001
 
-ENTRYPOINT ["./app/api"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -fsS "http://localhost:${BACKEND_PORT:-3001}/health" || exit 1
+
+ENTRYPOINT ["/app/api"]

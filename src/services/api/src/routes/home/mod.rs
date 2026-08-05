@@ -114,7 +114,7 @@ pub async fn get_homes(claims: Claims, State(state): State<AppState>) -> impl In
     }
 }
 
-/// Updates the name and address of an existing home owned by the authenticated user.
+/// Updates the name, address, and location of an existing home owned by the authenticated user.
 #[utoipa::path(
     put,
     path = "/home/{id}",

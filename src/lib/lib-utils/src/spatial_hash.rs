@@ -23,6 +23,21 @@ use h3o::{
 };
 use lib_models::error::SpatialHashError;
 
+/// H3 resolution for the most precise home location hash (~2-5km edge/diameter neighborhood).
+pub const HOME_LOCATION_HASH_HIGH_RESOLUTION: u8 = 6;
+/// H3 resolution for medium-granularity home location hash (~70-90km neighborhood).
+pub const HOME_LOCATION_HASH_MEDIUM_RESOLUTION: u8 = 3;
+/// H3 resolution for coarse-granularity home location hash (~400-500km neighborhood).
+pub const HOME_LOCATION_HASH_LOW_RESOLUTION: u8 = 1;
+
+/// All generated H3 location hashes for a home.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HomeLocationHashes {
+    pub high: String,
+    pub medium: String,
+    pub low: String,
+}
+
 /// Containment mode used for polygon coverage (polyfill).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PolyfillContainmentMode {
@@ -84,6 +99,15 @@ pub fn lat_lng_to_cell_string(
 /// Convert a `(lat, lng)` coordinate to its raw `u64` H3 index.
 pub fn lat_lng_to_cell_u64(lat: f64, lng: f64, resolution: u8) -> Result<u64, SpatialHashError> {
     Ok(u64::from(lat_lng_to_cell(lat, lng, resolution)?))
+}
+
+/// Generate high/medium/low location hashes for a home coordinate.
+pub fn home_location_hashes(lat: f64, lng: f64) -> Result<HomeLocationHashes, SpatialHashError> {
+    Ok(HomeLocationHashes {
+        high: lat_lng_to_cell_string(lat, lng, HOME_LOCATION_HASH_HIGH_RESOLUTION)?,
+        medium: lat_lng_to_cell_string(lat, lng, HOME_LOCATION_HASH_MEDIUM_RESOLUTION)?,
+        low: lat_lng_to_cell_string(lat, lng, HOME_LOCATION_HASH_LOW_RESOLUTION)?,
+    })
 }
 
 /// Return the parent cell at `parent_resolution` for a cell string.
@@ -501,5 +525,26 @@ mod tests {
         for (sync, async_result) in sync_results.iter().zip(async_results.iter()) {
             assert_eq!(sync.as_ref().ok(), async_result.as_ref().ok());
         }
+    }
+
+    #[test]
+    fn home_location_hashes_match_configured_resolutions() {
+        let hashes = home_location_hashes(PARIS_LAT, PARIS_LNG).unwrap();
+
+        assert_eq!(
+            hashes.high,
+            lat_lng_to_cell_string(PARIS_LAT, PARIS_LNG, HOME_LOCATION_HASH_HIGH_RESOLUTION)
+                .unwrap()
+        );
+        assert_eq!(
+            hashes.medium,
+            lat_lng_to_cell_string(PARIS_LAT, PARIS_LNG, HOME_LOCATION_HASH_MEDIUM_RESOLUTION)
+                .unwrap()
+        );
+        assert_eq!(
+            hashes.low,
+            lat_lng_to_cell_string(PARIS_LAT, PARIS_LNG, HOME_LOCATION_HASH_LOW_RESOLUTION)
+                .unwrap()
+        );
     }
 }

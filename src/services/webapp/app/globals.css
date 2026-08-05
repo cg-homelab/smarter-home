@@ -116,6 +116,28 @@
     --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Shiki renders with `defaultColor: false`, which emits per-token custom
+   properties instead of baked colours so the theme can follow `.dark`. */
+.code-block .shiki,
+.code-block .shiki span {
+    color: var(--shiki-light);
+    background-color: var(--shiki-light-bg);
+}
+
+.dark .code-block .shiki,
+.dark .code-block .shiki span {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+}
+
+.code-block .shiki {
+    @apply max-h-[32rem] overflow-auto p-4 font-mono leading-relaxed;
+}
+
+.code-block .shiki code {
+    @apply block w-fit min-w-full;
+}
+
 @layer base {
     * {
         @apply border-border outline-ring/50;
