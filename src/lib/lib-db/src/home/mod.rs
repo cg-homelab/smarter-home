@@ -1,6 +1,7 @@
 use crate::Db;
-use lib_models::domain::home::{DomainHome, DomainNewHome, DomainUpdateHome};
+use lib_models::domain::home::{DomainHome, DomainHomeLocation, DomainNewHome, DomainUpdateHome};
 use lib_models::error::Error;
+use lib_utils::spatial_hash::home_location_hashes;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -16,6 +17,11 @@ pub struct Home {
     id: Uuid,
     name: String,
     address: String,
+    latitude: f64,
+    longitude: f64,
+    location_hash_high: String,
+    location_hash_medium: String,
+    location_hash_low: String,
     token: String, // base64 encoded random token
     #[allow(dead_code)]
     tibber_token: Option<String>,
@@ -78,6 +84,8 @@ impl Home {
     ) -> Result<DomainHome, Error> {
         // Generate a random write token
         let id = Uuid::new_v4();
+        let location_hashes =
+            home_location_hashes(new_home.location.latitude, new_home.location.longitude)?;
         let write_token = lib_utils::crypto::generate_jwt(
             new_home.address.clone(),
             lib_models::Role::Home,
@@ -88,14 +96,39 @@ impl Home {
         let home = sqlx::query_as!(
             Home,
             r#"
-            INSERT INTO homes (id, name, address, token)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id, name, address, token, tibber_token
+            INSERT INTO homes (
+                id,
+                name,
+                address,
+                token,
+                latitude,
+                longitude,
+                location_hash_high,
+                location_hash_medium,
+                location_hash_low
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING
+                id,
+                name,
+                address,
+                latitude,
+                longitude,
+                location_hash_high,
+                location_hash_medium,
+                location_hash_low,
+                token,
+                tibber_token
             "#,
             id,
             new_home.name,
             new_home.address,
             write_token,
+            new_home.location.latitude,
+            new_home.location.longitude,
+            location_hashes.high,
+            location_hashes.medium,
+            location_hashes.low,
         )
         .fetch_one(&db.pool)
         .await?;
@@ -110,13 +143,7 @@ impl Home {
         .fetch_optional(&db.pool)
         .await?;
 
-        Ok(DomainHome {
-            id: home.id,
-            name: home.name,
-            address: home.address,
-            write_token: home.token,
-            is_favorite: false,
-        })
+        Ok(Self::to_domain_home(home, false))
     }
 
     /// Get all homes for a user
@@ -129,7 +156,18 @@ impl Home {
         // Get all homes for a user, including per-user favorite status
         let homes = sqlx::query!(
             r#"
-            SELECT h.id, h.name, h.address, h.token, h.tibber_token, uh.is_favorite
+            SELECT
+                h.id,
+                h.name,
+                h.address,
+                h.latitude,
+                h.longitude,
+                h.location_hash_high,
+                h.location_hash_medium,
+                h.location_hash_low,
+                h.token,
+                h.tibber_token,
+                uh.is_favorite
             FROM homes h
             JOIN user_homes uh ON h.id = uh.home_id
             WHERE uh.user_id = $1
@@ -144,6 +182,13 @@ impl Home {
                 id: r.id,
                 name: r.name,
                 address: r.address,
+                location: DomainHomeLocation {
+                    latitude: r.latitude,
+                    longitude: r.longitude,
+                },
+                location_hash_high: r.location_hash_high,
+                location_hash_medium: r.location_hash_medium,
+                location_hash_low: r.location_hash_low,
                 write_token: r.token,
                 is_favorite: r.is_favorite,
             })
@@ -151,7 +196,7 @@ impl Home {
         Ok(domain_homes)
     }
 
-    /// Update the name and address of an existing home
+    /// Update the name, address, and location of an existing home
     /// # Arguments
     /// * `db` - Database connection
     /// * `home_id` - Home ID to update
@@ -165,16 +210,42 @@ impl Home {
         user_id: Uuid,
         update: &DomainUpdateHome,
     ) -> Result<DomainHome, Error> {
+        let location_hashes =
+            home_location_hashes(update.location.latitude, update.location.longitude)?;
+
         let home = sqlx::query_as!(
             Home,
             r#"
             UPDATE homes
-            SET name = $1, address = $2, updated_at = NOW()
-            WHERE id = $3
-            RETURNING id, name, address, token, tibber_token
+            SET
+                name = $1,
+                address = $2,
+                latitude = $3,
+                longitude = $4,
+                location_hash_high = $5,
+                location_hash_medium = $6,
+                location_hash_low = $7,
+                updated_at = NOW()
+            WHERE id = $8
+            RETURNING
+                id,
+                name,
+                address,
+                latitude,
+                longitude,
+                location_hash_high,
+                location_hash_medium,
+                location_hash_low,
+                token,
+                tibber_token
             "#,
             update.name,
             update.address,
+            update.location.latitude,
+            update.location.longitude,
+            location_hashes.high,
+            location_hashes.medium,
+            location_hashes.low,
             home_id,
         )
         .fetch_one(&db.pool)
@@ -189,13 +260,7 @@ impl Home {
         .await?
         .is_favorite;
 
-        Ok(DomainHome {
-            id: home.id,
-            name: home.name,
-            address: home.address,
-            write_token: home.token,
-            is_favorite,
-        })
+        Ok(Self::to_domain_home(home, is_favorite))
     }
 
     /// Set the favorite status of a home for a specific user
@@ -228,7 +293,17 @@ impl Home {
         let home = sqlx::query_as!(
             Home,
             r#"
-            SELECT id, name, address, token, tibber_token
+            SELECT
+                id,
+                name,
+                address,
+                latitude,
+                longitude,
+                location_hash_high,
+                location_hash_medium,
+                location_hash_low,
+                token,
+                tibber_token
             FROM homes
             WHERE id = $1
             "#,
@@ -237,13 +312,7 @@ impl Home {
         .fetch_one(&db.pool)
         .await?;
 
-        Ok(DomainHome {
-            id: home.id,
-            name: home.name,
-            address: home.address,
-            write_token: home.token,
-            is_favorite,
-        })
+        Ok(Self::to_domain_home(home, is_favorite))
     }
 
     /// Delete a home by ID
@@ -262,5 +331,22 @@ impl Home {
         }
 
         Ok(())
+    }
+
+    fn to_domain_home(home: Home, is_favorite: bool) -> DomainHome {
+        DomainHome {
+            id: home.id,
+            name: home.name,
+            address: home.address,
+            location: DomainHomeLocation {
+                latitude: home.latitude,
+                longitude: home.longitude,
+            },
+            location_hash_high: home.location_hash_high,
+            location_hash_medium: home.location_hash_medium,
+            location_hash_low: home.location_hash_low,
+            write_token: home.token,
+            is_favorite,
+        }
     }
 }

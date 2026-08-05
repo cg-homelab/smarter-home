@@ -18,9 +18,13 @@ axum-extra = { workspace = true }
 tracing = { workspace = true }
 once_cell = { workspace = true }
 sha2 = { workspace = true }
+tokio = { workspace = true }
 
 # external crates from crates.io
 argon2 = "^0.5"
 # set rand_core feature flag for argon2
 rand_core = { version = "0.6.4", features = ["getrandom"] }
 base64 = "^0.22"
+h3o = { version = "^0.10", features = ["geo"] }
+geo-types = "^0.7"
+geojson = "^0.24"

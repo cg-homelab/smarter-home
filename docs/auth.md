@@ -60,6 +60,20 @@ Handlers that require auth rely on Claims extraction from Authorization: Bearer 
 
 Refresh tokens are stored hashed in the database and rotated on each successful refresh.
 
+Home write tokens are also validated through the same Claims extraction path for home-scoped data ingestion.
+
+Home-scoped ingest endpoints:
+
+- POST /power
+- POST /devices
+- POST /devices/metrics
+- POST /weather/observations
+- POST /weather/forecasts
+
+For these routes, the JWT claim id must match request body homeId.
+
+See docs/integrations.md for the payload shapes and the example hub scripts served at /integrations.
+
 ## Server-to-backend API calls
 
 src/services/webapp/lib/api.ts reads __session and sends Authorization header for server-side requests.

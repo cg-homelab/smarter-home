@@ -10,9 +10,11 @@ use tower_http::trace::TraceLayer;
 use utoipa::OpenApi;
 
 pub mod auth;
+pub mod device;
 pub mod home;
 pub mod power;
 pub mod user;
+pub mod weather;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -38,6 +40,12 @@ pub mod user;
         // Power
         power::post::post_power_metric,
         power::get::get_metrics_for_period,
+        // Device
+        device::post_devices,
+        device::post_device_metrics,
+        // Weather
+        weather::post_weather_observations,
+        weather::post_weather_forecasts,
     ))]
 struct ApiDoc;
 
@@ -70,6 +78,19 @@ pub fn create_router(db: lib_db::Db) -> axum::Router {
         .route("/power/metrics", get(power::get::get_metrics_for_period))
         .with_state(app_state.clone());
 
+    let device_routes: axum::Router = axum::Router::new()
+        .route("/devices", post(device::post_devices))
+        .route("/devices/metrics", post(device::post_device_metrics))
+        .with_state(app_state.clone());
+
+    let weather_routes: axum::Router = axum::Router::new()
+        .route(
+            "/weather/observations",
+            post(weather::post_weather_observations),
+        )
+        .route("/weather/forecasts", post(weather::post_weather_forecasts))
+        .with_state(app_state.clone());
+
     let home_routes: axum::Router = axum::Router::new()
         .route("/home", post(home::post_home))
         .route("/home", get(home::get_homes))
@@ -90,6 +111,8 @@ pub fn create_router(db: lib_db::Db) -> axum::Router {
         .merge(user_routes)
         .merge(home_routes)
         .merge(power_routes)
+        .merge(device_routes)
+        .merge(weather_routes)
         .layer(cors)
         .layer(TraceLayer::new_for_http())
 }

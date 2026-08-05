@@ -21,8 +21,9 @@ services:
     networks:
       - smarter_home
 
-  # Webapp (Vite/React SPA)
+  # Webapp (Next.js)
   webapp:
+    container_name: webapp
     build:
       context: ./
       dockerfile: Dockerfile.webapp
@@ -32,14 +33,17 @@ services:
     environment:
       - API_URL=http://backend:${BACKEND_PORT}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - smarter_home
 
   # Database
   database:
     container_name: sm-db
-    image: timescale/timescaledb-ha:pg17
+    # Pinned by digest: an upstream retag of :pg17 could move PGDATA again and
+    # silently orphan the volume mounted below.
+    image: timescale/timescaledb-ha:pg17@sha256:8cfcb83ee65178270a7b4f1eaf4af0854fa1639ed21c3202fb669707913faed9
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME}
@@ -48,7 +52,11 @@ services:
     ports:
       - "${DB_PORT}:5432"
     volumes:
-      - smarter_home_database_volume:/var/lib/postgresql/data
+      # The timescaledb-ha image sets PGDATA=/home/postgres/pgdata/data, NOT the
+      # standard /var/lib/postgresql/data. Mounting the standard path silently
+      # leaves the cluster in the container's writable layer, where it is lost on
+      # container recreation. Do not "correct" this back.
+      - smarter_home_database_volume:/home/postgres/pgdata/data
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U ${DB_USERNAME} -d ${DB_NAME}'"]
       interval: 5s
@@ -57,21 +65,6 @@ services:
       start_period: 15s
     networks:
       - smarter_home
-    # container_name: surrealdb
-    # env_file:
-    #   - .env
-    # entrypoint:
-    #   - /surreal
-    #   - start
-    #   - --user
-    #   - ${SURREALDB_USER}
-    #   - --pass
-    #   - ${SURREALDB_PASS}
-    # image: surrealdb/surrealdb:latest
-    # ports:
-    #   - 8000:8000
-    # networks:
-    #   - smarter_home
 
 volumes:
   smarter_home_database_volume:

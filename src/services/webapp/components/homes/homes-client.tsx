@@ -38,9 +38,16 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 interface FormState {
     name: string
     address: string
+    latitude: string
+    longitude: string
 }
 
-const EMPTY_FORM: FormState = { name: '', address: '' }
+const EMPTY_FORM: FormState = {
+    name: '',
+    address: '',
+    latitude: '',
+    longitude: '',
+}
 
 interface HomesClientProps {
     initialHomes: HomeModel[]
@@ -85,14 +92,41 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
         setForm((prev) => ({ ...prev, [name]: value }))
     }
 
+    function parseLocationInput(
+        latitude: string,
+        longitude: string,
+    ): { latitude: number; longitude: number } | null {
+        const parsedLatitude = Number(latitude)
+        const parsedLongitude = Number(longitude)
+
+        if (
+            !Number.isFinite(parsedLatitude) ||
+            !Number.isFinite(parsedLongitude)
+        ) {
+            return null
+        }
+
+        return {
+            latitude: parsedLatitude,
+            longitude: parsedLongitude,
+        }
+    }
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
         setFormError(null)
         setSubmitting(true)
         try {
+            const location = parseLocationInput(form.latitude, form.longitude)
+            if (!location) {
+                setFormError('Latitude and longitude must be valid numbers')
+                return
+            }
+
             const created = await createHomeAction({
                 name: form.name,
                 address: form.address,
+                location,
             })
             setHomes((prev) => [...prev, created])
             setForm(EMPTY_FORM)
@@ -108,7 +142,12 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
 
     function startEdit(home: HomeModel) {
         setEditingId(home.id)
-        setEditForm({ name: home.name, address: home.address })
+        setEditForm({
+            name: home.name,
+            address: home.address,
+            latitude: home.location.latitude.toString(),
+            longitude: home.location.longitude.toString(),
+        })
         setEditError(null)
     }
 
@@ -128,9 +167,19 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
         setEditError(null)
         setEditSubmitting(true)
         try {
+            const location = parseLocationInput(
+                editForm.latitude,
+                editForm.longitude,
+            )
+            if (!location) {
+                setEditError('Latitude and longitude must be valid numbers')
+                return
+            }
+
             const updated = await updateHomeAction(id, {
                 name: editForm.name,
                 address: editForm.address,
+                location,
             })
             setHomes((prev) => prev.map((h) => (h.id === id ? updated : h)))
             cancelEdit()
@@ -271,6 +320,34 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                                         disabled={submitting}
                                     />
                                 </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <Label htmlFor="latitude">Latitude</Label>
+                                    <Input
+                                        id="latitude"
+                                        name="latitude"
+                                        type="number"
+                                        step="any"
+                                        placeholder="e.g. 59.9139"
+                                        value={form.latitude}
+                                        onChange={handleFieldChange}
+                                        required
+                                        disabled={submitting}
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <Label htmlFor="longitude">Longitude</Label>
+                                    <Input
+                                        id="longitude"
+                                        name="longitude"
+                                        type="number"
+                                        step="any"
+                                        placeholder="e.g. 10.7522"
+                                        value={form.longitude}
+                                        onChange={handleFieldChange}
+                                        required
+                                        disabled={submitting}
+                                    />
+                                </div>
                             </div>
 
                             {formError && (
@@ -405,6 +482,52 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                                                         }
                                                     />
                                                 </div>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label
+                                                        htmlFor={`edit-latitude-${home.id}`}
+                                                    >
+                                                        Latitude
+                                                    </Label>
+                                                    <Input
+                                                        id={`edit-latitude-${home.id}`}
+                                                        name="latitude"
+                                                        type="number"
+                                                        step="any"
+                                                        value={
+                                                            editForm.latitude
+                                                        }
+                                                        onChange={
+                                                            handleEditFieldChange
+                                                        }
+                                                        required
+                                                        disabled={
+                                                            editSubmitting
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label
+                                                        htmlFor={`edit-longitude-${home.id}`}
+                                                    >
+                                                        Longitude
+                                                    </Label>
+                                                    <Input
+                                                        id={`edit-longitude-${home.id}`}
+                                                        name="longitude"
+                                                        type="number"
+                                                        step="any"
+                                                        value={
+                                                            editForm.longitude
+                                                        }
+                                                        onChange={
+                                                            handleEditFieldChange
+                                                        }
+                                                        required
+                                                        disabled={
+                                                            editSubmitting
+                                                        }
+                                                    />
+                                                </div>
 
                                                 {editError && (
                                                     <div className="flex items-center gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -511,6 +634,15 @@ export function HomesClient({ initialHomes, initialError }: HomesClientProps) {
                                             <div className="flex items-start gap-2 text-sm text-muted-foreground">
                                                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                                                 <span>{home.address}</span>
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {home.location.latitude.toFixed(
+                                                    4,
+                                                )}
+                                                ,{' '}
+                                                {home.location.longitude.toFixed(
+                                                    4,
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-2 text-sm">
                                                 <Fingerprint className="h-4 w-4 shrink-0 text-muted-foreground" />

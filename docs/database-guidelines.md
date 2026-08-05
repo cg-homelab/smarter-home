@@ -8,6 +8,21 @@ Migration tooling: SQLx and sqlx-cli
 - Migration files in migrations/ are the source of schema truth.
 - Runtime and compile-time query contracts are enforced by SQLx.
 
+## Container data directory
+
+The `timescale/timescaledb-ha` image sets `PGDATA=/home/postgres/pgdata/data`,
+not the conventional `/var/lib/postgresql/data`. `docker-compose.yml` mounts the
+named volume at that path, and the image is pinned by digest so an upstream retag
+cannot move it.
+
+Mounting the conventional path instead is silently destructive: Postgres keeps
+using its own `PGDATA` inside the container's writable layer, the volume stays
+empty, and all data is lost the next time the container is recreated. Verify with:
+
+```bash
+docker exec sm-db ls /home/postgres/pgdata/data   # should list PG_VERSION, base, global
+```
+
 ## Migration rules
 
 - New migrations should include both up and down files.
@@ -19,25 +34,19 @@ Migration tooling: SQLx and sqlx-cli
 
 ## SQLx operations
 
-Use these commands during development:
+Use these recipes during development:
 
-- make db-start
-- make db-status
-- make db-up
-- make db-down
-- make db-reset
-- make db-prepare-offline
+- just db start
+- just db status
+- just db up
+- just db down
+- just db reset (destructive, asks for confirmation)
+- just db mig-create <name>
+- just db prepare-offline
 
-If SQL in src/lib/lib-db changes, db-prepare-offline is required.
+If SQL in src/lib/lib-db changes, just db prepare-offline is required.
 
-On Windows without make, use direct commands:
-
-- docker compose up -d database
-- sqlx migrate info
-- sqlx migrate run
-- sqlx migrate revert
-- sqlx database reset
-- cargo sqlx prepare --workspace
+Run `just --show db::up` to see the underlying sqlx command behind any recipe.
 
 ## Performance best practices
 
