@@ -33,7 +33,7 @@ This folder contains detailed engineering documentation that supports README.md.
 ## Related root docs
 
 - CONTRIBUTING.md: contributor workflow and validation checklist.
-- AGENTS.md: canonical AI agent instruction source.
+- CLAUDE.md: canonical AI agent instruction source (with a webapp-local addendum at `src/services/webapp/CLAUDE.md`).
 
 ## Documentation update policy
 

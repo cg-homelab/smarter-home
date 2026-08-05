@@ -28,3 +28,8 @@ go.work
 
 # JS / TS
 node_modules/
+
+# AI tooling
+# .claude/settings.json and .claude/hooks are tracked on purpose.
+.claude/settings.local.json
+.codegraph/
