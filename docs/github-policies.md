@@ -35,10 +35,9 @@ Run relevant checks before requesting review:
   - bun run lint
   - bunx tsc --noEmit
 - Database:
-  - make db-up
-  - make db-down (for migration rollback validation)
-  - make db-prepare-offline (for lib-db SQL changes)
-  - on Windows without make: sqlx migrate run, sqlx migrate revert, cargo sqlx prepare --workspace
+  - just db up
+  - just db down (for migration rollback validation)
+  - just db prepare-offline (for lib-db SQL changes)
 
 ## Release and CI notes
 

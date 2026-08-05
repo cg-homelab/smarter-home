@@ -39,7 +39,7 @@ This folder contains detailed engineering documentation that supports README.md.
 
 Update docs in the same pull request when changing:
 
-- Commands in Makefile/package scripts.
+- Commands in `justfile`, `just/*.just`, or package scripts.
 - Folder names or major file locations.
 - API request/response contracts.
 - Authentication or authorization logic.

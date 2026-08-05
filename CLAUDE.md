@@ -37,17 +37,9 @@ If two rules conflict, prefer the rule that is safer for users, data, and produc
 - New migrations must be rollback-safe and include both up and down files.
 - Prefer idempotent SQL patterns such as `IF NOT EXISTS` and `IF EXISTS`.
 - Any change to SQL queries in `src/lib/lib-db` requires running:
-  - `make db-prepare-offline`
+  - `just db prepare-offline`
   - or `cargo sqlx prepare --workspace`
   - then committing the resulting `.sqlx/` changes, or the CI offline build fails.
-
-### Command execution on Windows
-
-- When `make` is unavailable (common on Windows), run the underlying shell commands from `Makefile` directly. README has the full PowerShell equivalents table.
-- Examples:
-  - `make db-start` -> `docker compose up -d database`
-  - `make deps-install` -> `cd src/services/webapp && bun install`
-  - `make db-prepare-offline` -> `cargo sqlx prepare --workspace`
 
 ### API and auth documentation
 
@@ -97,6 +89,7 @@ See `src/services/webapp/CLAUDE.md` for the full set. Summary:
 ## Validation
 
 Run `/pre-pr` before opening a pull request. It runs the same gate as CI.
+The equivalent single command is `just check`, which is read-only and never writes files.
 
 By change type:
 
@@ -104,11 +97,12 @@ By change type:
 | --- | --- |
 | Frontend | `bun run lint`, `bunx tsc --noEmit` |
 | Backend | `cargo fmt`, `cargo clippy --bin api`, `cargo test` |
-| Query change in `lib-db` | `make db-prepare-offline` (or `cargo sqlx prepare --workspace`) |
-| Migration | `make db-up`, then `make db-down` to verify rollback |
+| Query change in `lib-db` | `just db prepare-offline` (or `cargo sqlx prepare --workspace`) |
+| Migration | `just db up`, then `just db down` to verify rollback |
 
 ## Automation in this repository
 
+- `justfile` + `just/`: the repository task runner. Run `just` for the recipe list. `check` recipes are read-only; `fmt`/`fix` recipes write files. Requires just >= 1.48.
 - `.claude/settings.json`: hook and permission configuration, checked into git.
 - `.claude/hooks/format-edited-file.sh`: rustfmt/prettier/eslint on every edit.
 - `.claude/hooks/sqlx-prepare-reminder.sh`: enforces the offline-cache rule above.

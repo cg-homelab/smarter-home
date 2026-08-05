@@ -19,25 +19,19 @@ Migration tooling: SQLx and sqlx-cli
 
 ## SQLx operations
 
-Use these commands during development:
+Use these recipes during development:
 
-- make db-start
-- make db-status
-- make db-up
-- make db-down
-- make db-reset
-- make db-prepare-offline
+- just db start
+- just db status
+- just db up
+- just db down
+- just db reset (destructive, asks for confirmation)
+- just db mig-create <name>
+- just db prepare-offline
 
-If SQL in src/lib/lib-db changes, db-prepare-offline is required.
+If SQL in src/lib/lib-db changes, just db prepare-offline is required.
 
-On Windows without make, use direct commands:
-
-- docker compose up -d database
-- sqlx migrate info
-- sqlx migrate run
-- sqlx migrate revert
-- sqlx database reset
-- cargo sqlx prepare --workspace
+Run `just --show db::up` to see the underlying sqlx command behind any recipe.
 
 ## Performance best practices
 

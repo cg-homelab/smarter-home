@@ -17,6 +17,8 @@ git fetch -q origin main
 git diff --name-only origin/main...HEAD
 ```
 
+If every section applies, `just check` runs the whole read-only gate in one command.
+
 - Rust files (`**/*.rs`, `Cargo.toml`, `Cargo.lock`) → run Backend.
 - Anything under `src/services/webapp/` → run Frontend.
 - Anything under `src/lib/lib-db/` → run SQLx offline cache.
@@ -27,10 +29,10 @@ Run the sections that apply, in the order below. Report every failure with the e
 ## Backend
 
 ```bash
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets
-cargo test --workspace
+just api check
 ```
+
+That recipe runs `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets`, and `cargo test --workspace` in order. Run them individually (`just api fmt-check`, `just api lint-ci`, `just api test`) when you need to isolate a failure.
 
 - `cargo fmt` failures: run `cargo fmt --all` and re-check.
 - Clippy warnings in files touched by this branch must be fixed. Pre-existing warnings in untouched files may be left alone — say so explicitly rather than fixing them silently.
@@ -38,18 +40,19 @@ cargo test --workspace
 ## Frontend
 
 ```bash
-cd src/services/webapp && bun install --frozen-lockfile
-cd src/services/webapp && bun run lint
-cd src/services/webapp && bunx tsc --noEmit
+just web install
+just web check
 ```
+
+`just web check` is `bun run lint` followed by `bunx tsc --noEmit`, matching `validate-frontend.yml`.
 
 ## SQLx offline cache
 
 Required by CLAUDE.md whenever queries in `src/lib/lib-db` change — CI builds with `SQLX_OFFLINE`, so a stale cache fails the build.
 
 ```bash
-make db-start
-make db-prepare-offline
+just db start
+just db prepare-offline
 git status --short .sqlx/
 ```
 
@@ -60,9 +63,9 @@ If `.sqlx/` is dirty afterwards, the cache was stale: stage those files as part 
 Verify rollback safety for every new migration:
 
 ```bash
-make db-up
-make db-down
-make db-up
+just db up
+just db down
+just db up
 ```
 
 Each new migration needs both an up and a down file, and should use idempotent patterns (`IF NOT EXISTS`, `IF EXISTS`).

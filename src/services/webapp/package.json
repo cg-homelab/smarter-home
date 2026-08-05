@@ -8,7 +8,7 @@
         "start": "next start",
         "lint": "eslint",
         "format": "prettier --write .",
-        "check": "prettier --write . && eslint --fix"
+        "fix": "prettier --write . && eslint --fix"
     },
     "dependencies": {
         "class-variance-authority": "^0.7.1",
