@@ -72,6 +72,8 @@ Home-scoped ingest endpoints:
 
 For these routes, the JWT claim id must match request body homeId.
 
+See docs/integrations.md for the payload shapes and the example hub scripts served at /integrations.
+
 ## Server-to-backend API calls
 
 src/services/webapp/lib/api.ts reads __session and sends Authorization header for server-side requests.

@@ -122,6 +122,7 @@ By change type:
 - `docs/backend-guidelines.md`
 - `docs/database-guidelines.md`
 - `docs/auth.md`
+- `docs/integrations.md`
 - `docs/code-style.md`
 - `docs/github-policies.md`
 - `docs/nextjs-best-practices.md`

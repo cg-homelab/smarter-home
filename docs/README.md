@@ -27,6 +27,7 @@ This folder contains detailed engineering documentation that supports README.md.
 - github-policies.md: branch naming and pull request policy.
 - design-choices.md: implementation and architecture rationale.
 - auth.md: end-to-end authentication flow and security expectations.
+- integrations.md: smart home ingest contract and the example scripts on /integrations.
 - nextjs-best-practices.md: Next.js operational guidance.
 - rust-best-practices.md: Rust documentation, tests, and code quality guidance.
 
