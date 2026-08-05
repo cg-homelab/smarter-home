@@ -40,8 +40,11 @@ ENV NODE_ENV=production
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Build Next.js application
-RUN bun run build
+# Build Next.js application.
+# The cache mount preserves Next's incremental compiler cache between builds;
+# without it every build recompiles the whole app from cold.
+RUN --mount=type=cache,target=/app/.next/cache \
+  bun run build
 
 # ============================================
 # Stage 3: Run Next.js application
@@ -70,6 +73,9 @@ RUN mkdir .next && chown bun:bun .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
+#
+# The trailing /app is not a typo: next.config.ts sets turbopack.root one level
+# above the webapp directory, so standalone output is nested under app/.
 COPY --from=builder --chown=bun:bun /app/.next/standalone/app ./
 COPY --from=builder --chown=bun:bun /app/.next/static ./.next/static
 
@@ -84,6 +90,11 @@ USER bun
 
 # Expose port 3000 to allow HTTP traffic
 EXPOSE 3000
+
+# Confirms the server is listening and serving. Uses bun's fetch rather than
+# curl, which this base image does not ship.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
+  CMD bun -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/').then(()=>process.exit(0)).catch(()=>process.exit(1))"
 
 # Start Next.js standalone server with Bun
 CMD ["bun", "server.js"]

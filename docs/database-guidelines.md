@@ -8,6 +8,21 @@ Migration tooling: SQLx and sqlx-cli
 - Migration files in migrations/ are the source of schema truth.
 - Runtime and compile-time query contracts are enforced by SQLx.
 
+## Container data directory
+
+The `timescale/timescaledb-ha` image sets `PGDATA=/home/postgres/pgdata/data`,
+not the conventional `/var/lib/postgresql/data`. `docker-compose.yml` mounts the
+named volume at that path, and the image is pinned by digest so an upstream retag
+cannot move it.
+
+Mounting the conventional path instead is silently destructive: Postgres keeps
+using its own `PGDATA` inside the container's writable layer, the volume stays
+empty, and all data is lost the next time the container is recreated. Verify with:
+
+```bash
+docker exec sm-db ls /home/postgres/pgdata/data   # should list PG_VERSION, base, global
+```
+
 ## Migration rules
 
 - New migrations should include both up and down files.

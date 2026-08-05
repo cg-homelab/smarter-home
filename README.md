@@ -212,6 +212,7 @@ smarter-home/
 ├── 📁 migrations/            # Database migrations
 ├── 📄 docker-compose.yml     # Container orchestration
 ├── 📄 Dockerfile.api         # API container config
+├── 📄 Dockerfile.webapp      # Webapp container config
 ├── 📄 justfile               # Task runner entrypoint
 ├── 📁 just/                  # Task runner modules (db, api, web, docker)
 ├── 📄 Cargo.toml             # Rust workspace config
@@ -275,6 +276,26 @@ Services will be available at:
 - Frontend: http://localhost:3000
 - API: http://localhost:3001
 - Database: localhost:5432
+
+### Published images
+
+Publishing a GitHub release triggers `.github/workflows/run-release-deploy.yml`,
+which builds and pushes two images to Docker Hub:
+
+| Image | Built from |
+| --- | --- |
+| `zevome/smarter-home-api` | `Dockerfile.api` |
+| `zevome/smarter-home-web` | `Dockerfile.webapp` |
+
+`docker-compose.yml` builds from source and does not reference these images.
+
+### Build caching
+
+`Dockerfile.api` uses [cargo-chef](https://github.com/LukeMathWalker/cargo-chef)
+so dependencies compile into their own layer and are reused across source-only
+edits. Each Dockerfile has its own `<name>.dockerignore`, so the API build does
+not receive the webapp sources and vice versa. Both require BuildKit, which
+Compose and `docker buildx` enable by default.
 
 ## 🔧 Local Development (running app services individually)
 Always ensure the database is running first:
