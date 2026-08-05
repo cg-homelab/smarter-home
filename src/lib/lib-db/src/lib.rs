@@ -5,10 +5,12 @@ use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::time::Duration;
 
 pub mod config;
+pub mod device;
 pub mod home;
 pub mod power;
 pub mod refresh_token;
 pub mod user;
+pub mod weather;
 
 /// Db struct representing the database connection pool
 /// # Fields
