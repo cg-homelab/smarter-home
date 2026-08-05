@@ -1,11 +1,11 @@
 use axum::extract::State;
+use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
 use lib_db::power::PowerMetric as DbPowerMetric;
 use lib_models::domain::power::PowerMetrics;
 use lib_models::error::Error;
 use lib_utils::crypto::Claims;
-use reqwest::StatusCode;
 
 use crate::routes::AppState;
 

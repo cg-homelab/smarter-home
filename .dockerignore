@@ -43,6 +43,9 @@ playwright.config.*
 .git/
 .gitignore
 .gitattributes
+justfile
+.justfile
+just/
 .vscode/
 .idea/
 *.swp

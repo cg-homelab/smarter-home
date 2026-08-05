@@ -27,19 +27,20 @@ This folder contains detailed engineering documentation that supports README.md.
 - github-policies.md: branch naming and pull request policy.
 - design-choices.md: implementation and architecture rationale.
 - auth.md: end-to-end authentication flow and security expectations.
+- integrations.md: smart home ingest contract and the example scripts on /integrations.
 - nextjs-best-practices.md: Next.js operational guidance.
 - rust-best-practices.md: Rust documentation, tests, and code quality guidance.
 
 ## Related root docs
 
 - CONTRIBUTING.md: contributor workflow and validation checklist.
-- AGENTS.md: canonical AI agent instruction source.
+- CLAUDE.md: canonical AI agent instruction source (with a webapp-local addendum at `src/services/webapp/CLAUDE.md`).
 
 ## Documentation update policy
 
 Update docs in the same pull request when changing:
 
-- Commands in Makefile/package scripts.
+- Commands in `justfile`, `just/*.just`, or package scripts.
 - Folder names or major file locations.
 - API request/response contracts.
 - Authentication or authorization logic.

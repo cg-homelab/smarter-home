@@ -23,5 +23,4 @@
 - Use IF NOT EXISTS / IF EXISTS where possible.
 - Avoid ambiguous SQL in performance-sensitive paths.
 - Keep naming readable and consistent across schema and query aliases.
-- For lib-db query changes, regenerate SQLx metadata with make db-prepare-offline.
-- On Windows without make, run cargo sqlx prepare --workspace.
+- For lib-db query changes, regenerate SQLx metadata with just db prepare-offline.

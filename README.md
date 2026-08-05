@@ -42,6 +42,7 @@ Before starting, ensure you have:
 - **Node.js** v18+ - [Install here](https://nodejs.org/)
 - **Bun** (latest stable) - [Install here](https://bun.sh)
 - **Docker** with Docker Compose v2 - [Install here](https://docs.docker.com/get-docker/)
+- **just** v1.48+ (task runner) - [Install here](https://just.systems/man/en/packages.html)
 
 ### macOS/Linux/Windows setup notes
 
@@ -49,44 +50,38 @@ Use one of these quick setup paths, then continue with the project commands belo
 
 - macOS:
     - Install Homebrew and run:
-        - `brew install rustup-init node bun`
+        - `brew install rustup-init node bun just`
         - `brew install --cask docker`
 - Linux:
     - Install Rust with rustup: `curl https://sh.rustup.rs -sSf | sh`
     - Install Node.js from your distro package manager or official binary.
     - Install Bun: `curl -fsSL https://bun.sh/install | bash`
+    - Install just: `cargo install just` (or your distro package)
     - Install Docker Engine and Docker Compose plugin from official Docker docs for your distro.
 - Windows:
     - Install Rust via rustup installer (MSVC toolchain).
     - Install Node.js LTS from official installer.
     - Install Bun using PowerShell installer from bun.sh.
+    - Install just: `winget install --id Casey.Just --exact` (or `scoop install just`).
     - Install Docker Desktop for Windows.
 
-After installation, verify tool availability:
+Every project command runs through `just`, which behaves identically on macOS,
+Linux, and Windows. After installation, verify tool availability:
 
 ```bash
-make system-validate
-```
-
-On Windows without `make`, use:
-
-```powershell
-cargo --version
-bun --version
-docker --version
-docker compose version
+just system-validate
 ```
 
 ### 1. Validate System
 
 ```bash
-make system-validate
+just system-validate
 ```
 
 ### 2. Install Dependencies
 
 ```bash
-make deps-install
+just deps-install
 ```
 
 This will install:
@@ -95,7 +90,7 @@ This will install:
 If `sqlx` is not installed yet, install it once with:
 
 ```bash
-cargo install sqlx-cli --no-default-features --features rustls,postgres
+just install-sqlx
 ```
 
 ### 3. Setup Environment
@@ -104,111 +99,102 @@ cargo install sqlx-cli --no-default-features --features rustls,postgres
 cp .env.example .env
 ```
 
-**Windows - manually load environtment variables before running app !!!*
-```powershell
-Get-Content .env | Where-Object { $_ -match '=' -and $_ -notmatch '^#' } | ForEach-Object { $name, $value = $_ -split '=', 2; Set-Item "env:$($name.Trim())" $value.Trim() }
-```
+`just` loads `.env` automatically for every recipe, on every platform.
+
 ### 4. Start Database
 
 ```bash
-make db-start
+just db start
 ```
 
 ### 5. Run Migrations
 
 ```bash
-make db-up
+just db up
 ```
 
 ### 6. Choose Your Development Path
 
 **Option A: Full Stack with Docker**
 ```bash
-make docker-start
+just docker up
 ```
 
 **Option B: Individual Services**
 ```bash
 # Terminal 1: Start API
-cargo run --bin api
+just api dev
 
 # Terminal 2: Start Frontend
-cd src/services/webapp && bun run dev
+just web dev
 ```
 
 ## 📖 Available Commands
 
+Run `just` to list every recipe, or `just --show db::up` to see the exact
+command a recipe runs. The same commands work on macOS, Linux, and Windows.
+
+**`check` recipes never write files. `fmt`, `fix`, and `mig-create` do.**
+
 ### System Management
 | Command | Description |
 |---------|-------------|
-| `make system-validate` | Validate required local tooling for repository commands |
-| `make deps-install` | Install webapp dependencies |
+| `just` | List all recipes, including module recipes |
+| `just system-validate` | Validate required local tooling for repository commands |
+| `just deps-install` | Validate tooling, then install webapp dependencies |
+| `just install-sqlx` | Install sqlx-cli (one time) |
+
+### Validation
+| Command | Description |
+|---------|-------------|
+| `just check` | Read-only pre-PR gate: backend fmt/lint/test + webapp lint/typecheck |
+| `just fix` | Auto-format and auto-fix everything (writes files) |
 
 ### Running Services
 | Command | Description |
 |---------|-------------|
-| `make docker-start` | Start full stack with Docker Compose |
-| `make docker-stop` | Stop all Docker services |
-| `make db-start` | Start only the TimescaleDB database |
-| `make api-dev` | Run API locally and not through docker |
-| `make api-lint` | Run API lint checks with clippy |
-| `make api-format` | Format Rust code |
-| `make api-check` | Run API lint and format checks |
-| `make web-dev` | Start Next.js development server |
-| `make web-lint` | Run webapp lint checks |
-| `make web-format` | Run webapp formatting |
-| `make web-check` | Run webapp checks and TypeScript typecheck |
+| `just docker up` | Start full stack with Docker Compose |
+| `just docker down` | Stop all Docker services |
+| `just docker ps` | Show container status |
+| `just docker logs [service]` | Show recent container logs |
+| `just db start` | Start only the TimescaleDB database |
+| `just api dev` | Run API locally and not through docker |
+| `just api lint` | Lint the api binary with clippy |
+| `just api lint-ci` | Lint the whole workspace including tests |
+| `just api fmt` | Format Rust code (writes files) |
+| `just api fmt-check` | Verify Rust formatting (read-only) |
+| `just api test` | Run the Rust test suite |
+| `just api check` | Read-only backend gate: fmt-check, lint-ci, test |
+| `just web dev` | Start Next.js development server |
+| `just web install` | Install webapp dependencies |
+| `just web lint` | Run webapp lint checks (read-only) |
+| `just web typecheck` | Run TypeScript typecheck (read-only) |
+| `just web fmt` | Format the webapp with prettier (writes files) |
+| `just web fix` | Auto-format and auto-fix the webapp (writes files) |
+| `just web check` | Read-only webapp gate: lint + typecheck |
 
 ### Database Operations
 | Command | Description |
 |---------|-------------|
-| `make db-status` | Check current migration status |
-| `make db-up` | Apply all pending migrations |
-| `make db-down` | Rollback the last migration |
-| `make db-reset` | Rollback all migrations |
-| `make db-mig-create` | Create a new migration file |
-| `make db-prepare-offline` | Prepare offline SQL query metadata |
-
-### Windows (PowerShell) Equivalents (No make)
-
-Use these commands directly when `make` is not available:
-
-| Make Target | PowerShell Command |
-|---------|-------------|
-| `make system-validate` | `cargo --version; bun --version` |
-| `make deps-install` | `Push-Location src/services/webapp; bun install; Pop-Location` |
-| `make docker-start` | `docker compose up --build` |
-| `make docker-stop` | `docker compose down` |
-| `make db-start` | `docker compose up -d database` |
-| `make api-dev` | `cargo run --bin api` |
-| `make api-lint` | `cargo clippy --bin api` |
-| `make api-format` | `cargo fmt` |
-| `make api-check` | `cargo clippy --bin api; cargo fmt` |
-| `make web-dev` | `Push-Location src/services/webapp; bun run dev; Pop-Location` |
-| `make web-lint` | `Push-Location src/services/webapp; bun run lint; Pop-Location` |
-| `make web-format` | `Push-Location src/services/webapp; bun run format; Pop-Location` |
-| `make web-check` | `Push-Location src/services/webapp; bun run check; bunx tsc --noEmit; Pop-Location` |
-| `make db-status` | `sqlx migrate info` |
-| `make db-up` | `sqlx migrate run` |
-| `make db-down` | `sqlx migrate revert` |
-| `make db-reset` | `sqlx database reset` |
-| `make db-mig-create` | `sqlx migrate add <migration_name>` |
-| `make db-prepare-offline` | `cargo sqlx prepare --workspace` |
+| `just db status` | Check current migration status |
+| `just db up` | Apply all pending migrations |
+| `just db down` | Rollback the last migration |
+| `just db reset` | Drop and recreate the database (asks for confirmation) |
+| `just db mig-create <name>` | Create a new migration file |
+| `just db prepare-offline` | Prepare offline SQL query metadata |
 
 ### Development Commands
 ```bash
 # Build everything
 cargo build
 
-# Run tests
-cargo test
+# Run the full read-only gate before opening a PR
+just check
 
 # Frontend development
-cd src/services/webapp
-bun run dev            # Development server
-bun run build          # Production build
-bun run lint           # Code linting
-bunx tsc --noEmit      # Type checking
+just web dev           # Development server
+just web lint          # Code linting
+just web typecheck     # Type checking
 ```
 
 ## 🗂️ Project Structure
@@ -226,7 +212,9 @@ smarter-home/
 ├── 📁 migrations/            # Database migrations
 ├── 📄 docker-compose.yml     # Container orchestration
 ├── 📄 Dockerfile.api         # API container config
-├── 📄 Makefile               # Build automation
+├── 📄 Dockerfile.webapp      # Webapp container config
+├── 📄 justfile               # Task runner entrypoint
+├── 📁 just/                  # Task runner modules (db, api, web, docker)
 ├── 📄 Cargo.toml             # Rust workspace config
 └── 📄 .env.example           # Environment template
 ```
@@ -276,7 +264,7 @@ For a full variable-by-variable reference, see `docs/environment-variables.md`.
 
 ### Development
 ```bash
-make docker-start
+just docker up
 ```
 
 ### Production
@@ -289,35 +277,53 @@ Services will be available at:
 - API: http://localhost:3001
 - Database: localhost:5432
 
+### Published images
+
+Publishing a GitHub release triggers `.github/workflows/run-release-deploy.yml`,
+which builds and pushes two images to Docker Hub:
+
+| Image | Built from |
+| --- | --- |
+| `zevome/smarter-home-api` | `Dockerfile.api` |
+| `zevome/smarter-home-web` | `Dockerfile.webapp` |
+
+`docker-compose.yml` builds from source and does not reference these images.
+
+### Build caching
+
+`Dockerfile.api` uses [cargo-chef](https://github.com/LukeMathWalker/cargo-chef)
+so dependencies compile into their own layer and are reused across source-only
+edits. Each Dockerfile has its own `<name>.dockerignore`, so the API build does
+not receive the webapp sources and vice versa. Both require BuildKit, which
+Compose and `docker buildx` enable by default.
+
 ## 🔧 Local Development (running app services individually)
 Always ensure the database is running first:
 ```bash
-make db-start
+just db start
 ```
 Then start services as needed:
 - **API**:
 ```bash
-make api-dev
+just api dev
 ```
 
 ## 🧪 Testing
 
 ### Backend Tests
 ```bash
-cargo test
+just api test
 ```
 
 ### Frontend Validation
 ```bash
-cd src/services/webapp
-bun run lint
-bunx tsc --noEmit
+just web check
 ```
 
 ### Integration Tests
 ```bash
 # Start services first
-make docker-start
+just docker up
 
 # Run your integration tests here
 ```
@@ -331,7 +337,7 @@ make docker-start
 - Check `docker compose ps` for conflicting services
 
 **Database Connection Failed**
-- Ensure database is running: `make db-start`
+- Ensure database is running: `just db start`
 - Check DATABASE_URL in `.env` file
 - Verify hostname (localhost vs database)
 
@@ -351,7 +357,7 @@ make docker-start
 
 ## 📚 Documentation
 
-- Canonical AI agent instructions: `AGENTS.md`
+- Canonical AI agent instructions: `CLAUDE.md`
 - Contribution rules: `CONTRIBUTING.md`
 - Community expectations: `CODE_OF_CONDUCT.md`
 - Security policy: `SECURITY.md`

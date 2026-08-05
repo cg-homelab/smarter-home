@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(cargo fmt:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo build:*)",
+      "Bash(cargo sqlx prepare:*)",
+      "Bash(just)",
+      "Bash(just help)",
+      "Bash(just --list:*)",
+      "Bash(just --show:*)",
+      "Bash(just --dry-run:*)",
+      "Bash(just system-validate)",
+      "Bash(just deps-install)",
+      "Bash(just check)",
+      "Bash(just api check)",
+      "Bash(just api lint)",
+      "Bash(just api lint-ci)",
+      "Bash(just api fmt)",
+      "Bash(just api fmt-check)",
+      "Bash(just api test:*)",
+      "Bash(just web check)",
+      "Bash(just web lint)",
+      "Bash(just web typecheck)",
+      "Bash(just web fmt)",
+      "Bash(just web fmt-check)",
+      "Bash(just web install)",
+      "Bash(just db start)",
+      "Bash(just db status)",
+      "Bash(just db up)",
+      "Bash(just db mig-create:*)",
+      "Bash(just db prepare-offline)",
+      "Bash(just docker ps)",
+      "Bash(just docker logs:*)",
+      "Bash(sqlx migrate:*)",
+      "Bash(bun install)",
+      "Bash(bun run lint:*)",
+      "Bash(bun run format:*)",
+      "Bash(bunx tsc:*)",
+      "Bash(bunx --bun shadcn@latest add:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose up:*)",
+      "Bash(docker compose logs:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(bash ./workflow-helpers/clippy-helper.sh)"
+    ],
+    "ask": [
+      "Bash(just --yes:*)",
+      "Bash(just db reset:*)",
+      "Bash(just db down:*)",
+      "Bash(just docker down:*)",
+      "Bash(just fix:*)"
+    ],
+    "deny": ["Read(./.env)", "Edit(./.env)"]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/format-edited-file.sh\"",
+            "timeout": 30,
+            "statusMessage": "Formatting edited file"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/sqlx-prepare-reminder.sh\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/api-docs-reminder.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

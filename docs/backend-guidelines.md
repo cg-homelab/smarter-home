@@ -54,6 +54,17 @@ Scope: Rust backend and shared Rust libraries.
   - locationHashLow
 - Spatial hashes are generated server-side from the submitted coordinates using shared H3 resolution constants in lib-utils.
 
+## Home ingest token contract
+
+- Home-scoped ingestion endpoints are authenticated with the home write token in Authorization: Bearer <token>.
+- The token claim id must match request payload homeId for write operations.
+- Current home ingest endpoints:
+  - POST /power
+  - POST /devices
+  - POST /devices/metrics
+  - POST /weather/observations
+  - POST /weather/forecasts
+
 ## Auth endpoint behavior
 
 - Access tokens should remain short-lived and signed with AUTH_SECRET.
@@ -76,9 +87,8 @@ Recommended when relevant:
 
 If a change modifies SQL in src/lib/lib-db:
 
-- run make db-prepare-offline
+- run just db prepare-offline
 - or run cargo sqlx prepare --workspace
-- on Windows without make, use cargo sqlx prepare --workspace
 
 This ensures SQLx compile-time metadata stays valid.
 

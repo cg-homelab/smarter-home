@@ -26,6 +26,5 @@ once_cell = { workspace = true }
 
 # Service specific dependencies
 tower-http = { version = "^0.6", features = ["trace", "cors", "fs"] }
-reqwest = "^0.13"
 scalar_api_reference = { version = "^0.2", features = ["axum"] }
 # oauth2 = "4.4.2"

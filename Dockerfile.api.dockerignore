@@ -1,0 +1,93 @@
+# Build context for Dockerfile.api.
+# BuildKit prefers <dockerfile-name>.dockerignore over .dockerignore, which lets
+# the API and webapp builds have separate contexts while sharing `context: .`.
+#
+# NOTE: migrations/ and .sqlx/ must NOT be excluded. lib-db/build.rs and
+# sqlx::migrate!("../../../migrations") embed migrations at compile time, and the
+# query! macros need the offline cache.
+
+.cargo/
+.env
+target/
+
+# The webapp is built by Dockerfile.webapp and is not part of the Rust build.
+src/services/webapp/
+package.json
+package-lock.json
+node_modules/
+
+# Local tooling metadata
+.git/
+.gitignore
+.gitattributes
+justfile
+.justfile
+just/
+workflow-helpers/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.log
+
+# Environment variables (only commit template files)
+.env*.local
+.env.development
+.env.test
+.env.production.local
+
+# Docker configuration files (not needed inside build context)
+Dockerfile*
+.dockerignore
+compose.yaml
+compose.yml
+docker-compose*.yaml
+docker-compose*.yml
+
+# Documentation
+*.md
+docs/
+
+# CI/CD configuration files
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+Jenkinsfile
+
+# Sensitive or unnecessary configuration files
+*.pem
+
+# OS-specific junk
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# AI/ML tool metadata and configs
+.cursor/
+.cursorrules
+.copilot/
+.copilotignore
+.github/copilot/
+.gemini/
+.anthropic/
+.kiro
+.claude
+.serena/
+.codegraph/
+AGENTS.md
+.agents/
+
+# AI-generated temp files
+*.aider*
+*.copilot*
+*.chatgpt*
+*.claude*
+*.gemini*
+*.openai*
+*.anthropic*
